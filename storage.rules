@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function validImageUpload() {
+      return request.resource != null &&
+        request.resource.size <= 5 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    function verifiedSupplier(userId) {
+      return firestore.exists(/databases/(default)/documents/users/$(userId)) &&
+        firestore.get(/databases/(default)/documents/users/$(userId)).data.isVerified == true &&
+        firestore.get(/databases/(default)/documents/users/$(userId)).data.verificationStatus == 'verified';
+    }
+
+    function chatParticipant(chatId) {
+      return signedIn() &&
+        firestore.exists(/databases/(default)/documents/chats/$(chatId)) &&
+        firestore.get(/databases/(default)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
+    }
+
+    match /users/{userId}/profile/{fileName} {
+      allow read: if true;
+      allow create, update: if signedIn() &&
+        request.auth.uid == userId &&
+        verifiedSupplier(userId) &&
+        validImageUpload();
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /materials/{userId}/{listingId}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedIn() &&
+        request.auth.uid == userId &&
+        validImageUpload();
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /chat_images/{chatId}/{userId}/{fileName} {
+      allow read: if chatParticipant(chatId);
+      allow create, update: if signedIn() &&
+        request.auth.uid == userId &&
+        chatParticipant(chatId) &&
+        validImageUpload();
+      allow delete: if signedIn() &&
+        request.auth.uid == userId &&
+        chatParticipant(chatId);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

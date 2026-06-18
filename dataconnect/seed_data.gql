@@ -1,0 +1,66 @@
+mutation CreateDemoData @transaction @auth(level: USER, insecureReason: "This operation is for seeding data and should only be run by authenticated users.") {
+  user_insertMany(data: [
+    {
+      id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      username: "alice",
+      email: "alice@example.com",
+      createdAt: "2023-01-01T10:00:00Z"
+    },
+    {
+      id: "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+      username: "bob",
+      email: "bob@example.com",
+      createdAt: "2023-01-01T10:05:00Z"
+    }
+  ])
+  product_insertMany(data: [
+    {
+      id: "c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33",
+      name: "Laptop",
+      description: "Powerful laptop for all your needs.",
+      price: 1200.00,
+      sellerId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      createdAt: "2023-01-02T11:00:00Z"
+    },
+    {
+      id: "d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44",
+      name: "Smartphone",
+      description: "Latest model smartphone with amazing camera.",
+      price: 800.00,
+      sellerId: "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+      createdAt: "2023-01-02T11:15:00Z"
+    }
+  ])
+  order_insertMany(data: [
+    {
+      id: "e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55",
+      userId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      totalAmount: 1200.00,
+      createdAt: "2023-01-03T12:00:00Z",
+      status: "COMPLETED"
+    },
+    {
+      id: "f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a66",
+      userId: "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+      totalAmount: 800.00,
+      createdAt: "2023-01-03T12:30:00Z",
+      status: "PENDING"
+    }
+  ])
+  orderItem_insertMany(data: [
+    {
+      id: "10eebc99-9c0b-4ef8-bb6d-6bb9bd380a77",
+      orderId: "e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55",
+      productId: "c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33",
+      quantity: 1,
+      price: 1200.00
+    },
+    {
+      id: "20eebc99-9c0b-4ef8-bb6d-6bb9bd380a88",
+      orderId: "f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a66",
+      productId: "d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44",
+      quantity: 1,
+      price: 800.00
+    }
+  ])
+}

@@ -1,0 +1,566 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users/{userId}
+// Existing supplier fields remain supported. Chat adds optional public-facing
+// profile and presence fields:
+//   - uid: string, immutable owner id
+//   - userId: string, optional mirror of uid
+//   - name/profileImage/phone: optional strings used by the chat UI
+//   - isOnline: optional bool
+//   - lastSeen: optional timestamp
+//   - fcmTokens: optional list of device tokens, max 20
+//
+// Collection: chats/{chatId}
+//   - chatId, buyerId, sellerId, productId: immutable strings
+//   - participants: list with buyerId and sellerId only
+//   - participantNames/participantImages: map keyed by participants
+//   - lastMessage, lastMessageTime, lastMessageSenderId
+//   - unreadCounts: map keyed by participants
+//   - createdAt/updatedAt timestamps
+//
+// Subcollection: chats/{chatId}/messages/{messageId}
+//   - messageId, chatId, senderId: strings
+//   - message: text or image URL string
+//   - timestamp/readAt: timestamps
+//   - messageType: text|image
+//   - isRead: bool
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifier() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function isString(value, min, max) {
+      return value is string && value.size() >= min && value.size() <= max;
+    }
+
+    function isOptionalString(value, max) {
+      return value == null || (value is string && value.size() <= max);
+    }
+
+    function isOptionalBool(value) {
+      return value == null || value is bool;
+    }
+
+    function isOptionalTimestamp(value) {
+      return value == null || value is timestamp;
+    }
+
+    function isOptionalStringList(value, max) {
+      return value == null || (value is list && value.size() <= max);
+    }
+
+    function isCoordinate(latitude, longitude) {
+      return latitude is number &&
+        longitude is number &&
+        latitude >= -90 &&
+        latitude <= 90 &&
+        longitude >= -180 &&
+        longitude <= 180;
+    }
+
+    function isVerificationStatus(value) {
+      return value == 'pending' || value == 'verified' || value == 'rejected';
+    }
+
+    function isMessageType(value) {
+      return value == 'text' || value == 'image';
+    }
+
+    function isRating(value) {
+      return value is number && value >= 0 && value <= 5;
+    }
+
+    function supplierDoc(userId) {
+      return get(/databases/$(database)/documents/users/$(userId));
+    }
+
+    function isVerifiedSupplier(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId)) &&
+        supplierDoc(userId).data.isVerified == true &&
+        supplierDoc(userId).data.verificationStatus == 'verified';
+    }
+
+    function validTimestampFields(data, isCreate) {
+      return isCreate
+        ? data.createdAt == request.time && !data.keys().hasAny(['updatedAt'])
+        : data.createdAt is timestamp &&
+          (!data.keys().hasAny(['updatedAt']) || data.updatedAt == request.time);
+    }
+
+    function validUserIdentity(data, userId) {
+      return data.uid == userId &&
+        (!data.keys().hasAny(['userId']) || data.userId == userId);
+    }
+
+    function validUser(data, isCreate) {
+      return data.keys().hasOnly([
+          'uid',
+          'userId',
+          'name',
+          'profileImage',
+          'phone',
+          'isOnline',
+          'lastSeen',
+          'fcmTokens',
+          'supplierName',
+          'companyName',
+          'email',
+          'phoneNumber',
+          'whatsappNumber',
+          'profilePhoto',
+          'address',
+          'city',
+          'state',
+          'latitude',
+          'longitude',
+          'description',
+          'isVerified',
+          'verificationStatus',
+          'verifiedAt',
+          'rating',
+          'reviewCount',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasAll([
+          'uid',
+          'supplierName',
+          'companyName',
+          'email',
+          'phoneNumber',
+          'whatsappNumber',
+          'profilePhoto',
+          'address',
+          'city',
+          'state',
+          'latitude',
+          'longitude',
+          'description',
+          'isVerified',
+          'verificationStatus',
+          'rating',
+          'reviewCount',
+          'createdAt'
+        ]) &&
+        isString(data.uid, 1, 128) &&
+        (!data.keys().hasAny(['userId']) || isString(data.userId, 1, 128)) &&
+        isOptionalString(data.name, 120) &&
+        isOptionalString(data.profileImage, 2048) &&
+        isOptionalString(data.phone, 24) &&
+        isOptionalBool(data.isOnline) &&
+        isOptionalTimestamp(data.lastSeen) &&
+        isOptionalStringList(data.fcmTokens, 20) &&
+        isOptionalString(data.supplierName, 120) &&
+        isOptionalString(data.companyName, 160) &&
+        isOptionalString(data.email, 180) &&
+        isOptionalString(data.phoneNumber, 24) &&
+        isOptionalString(data.whatsappNumber, 24) &&
+        isOptionalString(data.profilePhoto, 2048) &&
+        isOptionalString(data.address, 500) &&
+        isOptionalString(data.city, 120) &&
+        isOptionalString(data.state, 120) &&
+        isCoordinate(data.latitude, data.longitude) &&
+        data.isVerified is bool &&
+        isVerificationStatus(data.verificationStatus) &&
+        (!data.keys().hasAny(['verifiedAt']) || data.verifiedAt is timestamp) &&
+        isRating(data.rating) &&
+        data.reviewCount is int &&
+        data.reviewCount >= 0 &&
+        isOptionalString(data.description, 1200) &&
+        validTimestampFields(data, isCreate);
+    }
+
+    function userCreateVerificationIsPending(data) {
+      return data.isVerified == false &&
+        data.verificationStatus == 'pending' &&
+        data.rating == 0 &&
+        data.reviewCount == 0 &&
+        !data.keys().hasAny(['verifiedAt']);
+    }
+
+    function verificationFieldsUnchanged() {
+      return request.resource.data.isVerified == resource.data.isVerified &&
+        request.resource.data.verificationStatus == resource.data.verificationStatus &&
+        request.resource.data.rating == resource.data.rating &&
+        request.resource.data.reviewCount == resource.data.reviewCount &&
+        (
+          (!request.resource.data.keys().hasAny(['verifiedAt']) &&
+            !resource.data.keys().hasAny(['verifiedAt'])) ||
+          request.resource.data.verifiedAt == resource.data.verifiedAt
+        );
+    }
+
+    function validMaterial(data, isCreate) {
+      return data.keys().hasOnly([
+          'id',
+          'supplierId',
+          'supplierName',
+          'supplierCompanyName',
+          'supplierPhoneNumber',
+          'supplierWhatsappNumber',
+          'supplierPhoto',
+          'supplierVerified',
+          'supplierRating',
+          'duplicateKey',
+          'materialName',
+          'category',
+          'price',
+          'quantity',
+          'unit',
+          'description',
+          'images',
+          'address',
+          'city',
+          'state',
+          'latitude',
+          'longitude',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasAll([
+          'id',
+          'supplierId',
+          'supplierName',
+          'supplierCompanyName',
+          'supplierPhoneNumber',
+          'supplierWhatsappNumber',
+          'supplierPhoto',
+          'supplierVerified',
+          'supplierRating',
+          'duplicateKey',
+          'materialName',
+          'category',
+          'price',
+          'quantity',
+          'unit',
+          'description',
+          'images',
+          'address',
+          'city',
+          'state',
+          'latitude',
+          'longitude',
+          'createdAt'
+        ]) &&
+        isString(data.id, 1, 128) &&
+        isString(data.supplierId, 1, 128) &&
+        isString(data.supplierName, 1, 160) &&
+        isString(data.supplierCompanyName, 1, 160) &&
+        isString(data.supplierPhoneNumber, 6, 24) &&
+        isString(data.supplierWhatsappNumber, 6, 24) &&
+        isOptionalString(data.supplierPhoto, 2048) &&
+        data.supplierVerified == true &&
+        isRating(data.supplierRating) &&
+        isString(data.duplicateKey, 8, 220) &&
+        isString(data.materialName, 2, 160) &&
+        isString(data.category, 2, 80) &&
+        data.price is number &&
+        data.price > 0 &&
+        data.price <= 100000000 &&
+        isString(data.quantity, 1, 80) &&
+        isString(data.unit, 1, 40) &&
+        isString(data.description, 1, 3000) &&
+        data.images is list &&
+        data.images.size() <= 10 &&
+        isString(data.address, 1, 500) &&
+        isString(data.city, 1, 120) &&
+        isString(data.state, 1, 120) &&
+        isCoordinate(data.latitude, data.longitude) &&
+        validTimestampFields(data, isCreate);
+    }
+
+    function isValidParticipantList(data) {
+      return data.participants is list &&
+        data.participants.size() == 2 &&
+        data.participants.hasAll([data.buyerId, data.sellerId]) &&
+        data.participants.hasOnly([data.buyerId, data.sellerId]) &&
+        data.buyerId != data.sellerId;
+    }
+
+    function isChatParticipantData(data) {
+      return signedIn() && data.participants.hasAny([request.auth.uid]);
+    }
+
+    function chatDoc(chatId) {
+      return get(/databases/$(database)/documents/chats/$(chatId));
+    }
+
+    function isChatParticipant(chatId) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/chats/$(chatId)) &&
+        chatDoc(chatId).data.participants.hasAny([request.auth.uid]);
+    }
+
+    function validUnreadCounts(data) {
+      return data.unreadCounts is map &&
+        data.unreadCounts.keys().hasOnly(data.participants) &&
+        data.unreadCounts[data.buyerId] is int &&
+        data.unreadCounts[data.sellerId] is int &&
+        data.unreadCounts[data.buyerId] >= 0 &&
+        data.unreadCounts[data.sellerId] >= 0 &&
+        data.unreadCounts[data.buyerId] <= 100000 &&
+        data.unreadCounts[data.sellerId] <= 100000;
+    }
+
+    function validParticipantProfileMaps(data) {
+      return data.participantNames is map &&
+        data.participantImages is map &&
+        data.participantNames.keys().hasOnly(data.participants) &&
+        data.participantImages.keys().hasOnly(data.participants) &&
+        isString(data.participantNames[data.buyerId], 1, 120) &&
+        isString(data.participantNames[data.sellerId], 1, 120) &&
+        isOptionalString(data.participantImages[data.buyerId], 2048) &&
+        isOptionalString(data.participantImages[data.sellerId], 2048);
+    }
+
+    function validChat(data, isCreate) {
+      return data.keys().hasOnly([
+          'chatId',
+          'buyerId',
+          'sellerId',
+          'productId',
+          'lastMessage',
+          'lastMessageTime',
+          'participants',
+          'lastMessageSenderId',
+          'unreadCounts',
+          'participantNames',
+          'participantImages',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasAll([
+          'chatId',
+          'buyerId',
+          'sellerId',
+          'productId',
+          'lastMessage',
+          'lastMessageTime',
+          'participants',
+          'lastMessageSenderId',
+          'unreadCounts',
+          'participantNames',
+          'participantImages',
+          'createdAt'
+        ]) &&
+        isString(data.chatId, 1, 220) &&
+        isString(data.buyerId, 1, 128) &&
+        isString(data.sellerId, 1, 128) &&
+        isString(data.productId, 1, 128) &&
+        isString(data.lastMessage, 1, 1000) &&
+        data.lastMessageTime is timestamp &&
+        isString(data.lastMessageSenderId, 0, 128) &&
+        isValidParticipantList(data) &&
+        validUnreadCounts(data) &&
+        validParticipantProfileMaps(data) &&
+        validTimestampFields(data, isCreate);
+    }
+
+    function chatIdentityUnchanged() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'chatId',
+        'buyerId',
+        'sellerId',
+        'productId',
+        'participants',
+        'participantNames',
+        'participantImages',
+        'createdAt'
+      ]);
+    }
+
+    function otherParticipant(data) {
+      return data.participants[0] == request.auth.uid
+        ? data.participants[1]
+        : data.participants[0];
+    }
+
+    function validUnreadIncrement() {
+      let otherId = otherParticipant(resource.data);
+      return request.resource.data.unreadCounts[request.auth.uid] ==
+          resource.data.unreadCounts[request.auth.uid] &&
+        request.resource.data.unreadCounts[otherId] ==
+          resource.data.unreadCounts[otherId] + 1;
+    }
+
+    function validOwnUnreadClear() {
+      let otherId = otherParticipant(resource.data);
+      return request.resource.data.unreadCounts[request.auth.uid] == 0 &&
+        request.resource.data.unreadCounts[otherId] ==
+          resource.data.unreadCounts[otherId];
+    }
+
+    function validChatCreate(chatId) {
+      return request.resource.data.chatId == chatId &&
+        validChat(request.resource.data, true) &&
+        isChatParticipantData(request.resource.data) &&
+        request.resource.data.lastMessageSenderId == '' &&
+        request.resource.data.lastMessageTime == request.time &&
+        request.resource.data.unreadCounts[request.resource.data.buyerId] == 0 &&
+        request.resource.data.unreadCounts[request.resource.data.sellerId] == 0;
+    }
+
+    function validChatSendUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'lastMessage',
+          'lastMessageTime',
+          'lastMessageSenderId',
+          'unreadCounts',
+          'updatedAt'
+        ]) &&
+        request.resource.data.lastMessageSenderId == request.auth.uid &&
+        request.resource.data.lastMessageTime == request.time &&
+        request.resource.data.updatedAt == request.time &&
+        validUnreadIncrement();
+    }
+
+    function validChatReadUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'unreadCounts',
+          'updatedAt'
+        ]) &&
+        request.resource.data.updatedAt == request.time &&
+        validOwnUnreadClear();
+    }
+
+    function validMessage(data, chatId) {
+      return data.keys().hasOnly([
+          'messageId',
+          'chatId',
+          'senderId',
+          'message',
+          'timestamp',
+          'messageType',
+          'isRead',
+          'readAt'
+        ]) &&
+        data.keys().hasAll([
+          'messageId',
+          'chatId',
+          'senderId',
+          'message',
+          'timestamp',
+          'messageType',
+          'isRead'
+        ]) &&
+        isString(data.messageId, 1, 128) &&
+        data.chatId == chatId &&
+        isString(data.senderId, 1, 128) &&
+        (
+          (data.messageType == 'text' && isString(data.message, 1, 1000)) ||
+          (data.messageType == 'image' && isString(data.message, 1, 2048))
+        ) &&
+        data.timestamp is timestamp &&
+        isMessageType(data.messageType) &&
+        data.isRead is bool &&
+        (!data.keys().hasAny(['readAt']) || data.readAt is timestamp);
+    }
+
+    function validMessageCreate(chatId, messageId) {
+      return isChatParticipant(chatId) &&
+        request.resource.data.messageId == messageId &&
+        request.resource.data.senderId == request.auth.uid &&
+        request.resource.data.timestamp == request.time &&
+        request.resource.data.isRead == false &&
+        !request.resource.data.keys().hasAny(['readAt']) &&
+        validMessage(request.resource.data, chatId);
+    }
+
+    function validMessageReadUpdate(chatId) {
+      return isChatParticipant(chatId) &&
+        resource.data.senderId != request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'isRead',
+          'readAt'
+        ]) &&
+        request.resource.data.isRead == true &&
+        request.resource.data.readAt == request.time &&
+        validMessage(request.resource.data, chatId);
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() || resource.data.isVerified == true;
+      allow create: if signedIn() &&
+        userId == request.auth.uid &&
+        validUserIdentity(request.resource.data, userId) &&
+        userCreateVerificationIsPending(request.resource.data) &&
+        validUser(request.resource.data, true);
+      allow update: if signedIn() &&
+        userId == request.auth.uid &&
+        validUserIdentity(request.resource.data, userId) &&
+        resource.data.uid == request.auth.uid &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        verificationFieldsUnchanged() &&
+        validUser(request.resource.data, false);
+      allow update: if isVerifier() &&
+        request.resource.data.uid == resource.data.uid &&
+        (!request.resource.data.keys().hasAny(['userId']) ||
+          request.resource.data.userId == resource.data.userId) &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'isVerified',
+          'verificationStatus',
+          'verifiedAt',
+          'rating',
+          'reviewCount',
+          'updatedAt'
+        ]) &&
+        validUser(request.resource.data, false);
+      allow delete: if false;
+    }
+
+    match /materials/{materialId} {
+      allow read: if true;
+      allow create: if signedIn() &&
+        request.resource.data.id == materialId &&
+        request.resource.data.supplierId == request.auth.uid &&
+        isVerifiedSupplier(request.auth.uid) &&
+        request.resource.data.supplierVerified == true &&
+        request.resource.data.supplierRating == supplierDoc(request.auth.uid).data.rating &&
+        validMaterial(request.resource.data, true);
+      allow update: if signedIn() &&
+        resource.data.supplierId == request.auth.uid &&
+        isVerifiedSupplier(request.auth.uid) &&
+        request.resource.data.id == resource.data.id &&
+        request.resource.data.supplierId == resource.data.supplierId &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.supplierVerified == true &&
+        request.resource.data.supplierRating == supplierDoc(request.auth.uid).data.rating &&
+        validMaterial(request.resource.data, false);
+      allow delete: if signedIn() && resource.data.supplierId == request.auth.uid;
+    }
+
+    match /chats/{chatId} {
+      allow read: if isChatParticipantData(resource.data);
+      allow create: if validChatCreate(chatId);
+      allow update: if isChatParticipantData(resource.data) &&
+        chatIdentityUnchanged() &&
+        validChat(request.resource.data, false) &&
+        (validChatSendUpdate() || validChatReadUpdate());
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isChatParticipant(chatId);
+        allow create: if validMessageCreate(chatId, messageId);
+        allow update: if validMessageReadUpdate(chatId);
+        allow delete: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,46 @@
+type User @table {
+  displayName: String!
+  email: String!
+  userType: String!
+  createdAt: Timestamp!
+  companyName: String
+  phoneNumber: String
+  address: String
+}
+
+type Material @table {
+  name: String!
+  category: String!
+  createdAt: Timestamp!
+  description: String
+  unitOfMeasure: String
+}
+
+type SupplierListing @table {
+  supplier: User!
+  material: Material!
+  price: Float!
+  quantityAvailable: Int!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  minOrderQuantity: Int
+  deliveryOptions: String
+  leadTimeDays: Int
+}
+
+type Inquiry @table {
+  customer: User!
+  supplier: User!
+  listing: SupplierListing!
+  message: String!
+  createdAt: Timestamp!
+  status: String
+}
+
+type Review @table {
+  customer: User!
+  supplier: User!
+  rating: Int!
+  createdAt: Timestamp!
+  comment: String
+}

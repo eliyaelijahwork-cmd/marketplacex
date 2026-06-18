@@ -1,0 +1,30 @@
+query AllListings @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  listings {
+    id
+    title
+    description
+    price
+    sellerUid
+  }
+}
+
+query MyListings($sellerUid: String!) @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users.") {
+  listings(where: { sellerUid: { eq: $sellerUid } }) {
+    id
+    title
+    price
+  }
+}
+
+mutation CreateListing($title: String!, $description: String!, $price: Float!) @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users.") {
+  listing_insert(data: {
+    title: $title,
+    description: $description,
+    price: $price,
+    sellerUid_expr: "auth.uid"
+  })
+}
+
+mutation DeleteListing($id: UUID!) @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users.") {
+  listing_delete(key: { id: $id })
+}

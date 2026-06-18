@@ -1,0 +1,16 @@
+<svg width="880" height="220" viewBox="0 0 880 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(26 22)" color="#0b72e7">
+    <path d="M0 172H220" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+    <path d="M14 104H68V172H14V104Z" fill="currentColor" opacity=".95"/>
+    <path d="M54 76H110V172H54V76Z" fill="currentColor"/>
+    <path d="M29 123H41V141H29V123ZM53 123H65V141H53V123ZM80 96H92V114H80V96ZM80 131H92V149H80V131Z" fill="#fff" opacity=".86"/>
+    <path d="M118 172V88H186V172M118 88L152 60L188 88" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M131 172V121H161V172M174 137H187V172" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M104 72H230M104 72L150 24L230 45V72M150 24V72M218 72V122" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="218" cy="126" r="10" fill="currentColor"/>
+  </g>
+  <text x="282" y="105" font-family="Arial, Helvetica, sans-serif" font-size="66" font-weight="800" fill="#111827">Market</text>
+  <text x="487" y="105" font-family="Arial, Helvetica, sans-serif" font-size="66" font-weight="800" fill="#0b72e7">PlaceX</text>
+  <text x="286" y="154" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="800" fill="#111827">Construction Materials Marketplace</text>
+  <text x="288" y="191" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#475569">Your Trusted Construction Materials Supply Platform</text>
+</svg>

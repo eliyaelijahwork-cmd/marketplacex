@@ -10,7 +10,7 @@ type AuthFormProps = {
 };
 
 const inputClass =
-  "rounded-md border border-slate-300 px-3 py-2.5 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
+  "w-full min-w-0 rounded-md border border-slate-300 px-3 py-2.5 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
 
 export default function AuthForm({ mode }: AuthFormProps) {
   const isSignup = mode === "signup";
@@ -58,13 +58,13 @@ export default function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <section className="mx-auto grid min-h-[72vh] w-full max-w-7xl place-items-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="bg-[#06323f] p-8 text-white">
+    <section className="mx-auto grid min-h-[72vh] w-full max-w-7xl place-items-center px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="bg-[#06323f] p-4 text-white sm:p-6 lg:p-8">
           <p className="text-sm font-bold uppercase text-cyan-200">
             {isSignup ? "Supplier onboarding" : "Supplier login"}
           </p>
-          <h1 className="mt-4 text-3xl font-black leading-tight">
+          <h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">
             {isSignup ? "Create your supplier account" : "Access your supplier tools"}
           </h1>
           <p className="mt-4 leading-7 text-cyan-50">
@@ -87,7 +87,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
           </div>
         </div>
 
-        <div className="p-6 sm:p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           {!firebaseReady && (
             <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
               Firebase env values are missing at the project root. The UI is ready, but sign-in
@@ -125,7 +125,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
               />
             </label>
             <button
-              className="rounded-md bg-cyan-700 px-5 py-3 font-bold text-white transition hover:bg-cyan-800 disabled:cursor-wait disabled:opacity-70"
+              className="w-full rounded-md bg-cyan-700 px-5 py-3 font-bold text-white transition hover:bg-cyan-800 disabled:cursor-wait disabled:opacity-70 md:w-auto"
               disabled={submitting || !firebaseReady}
               type="submit"
             >
@@ -148,7 +148,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 />
               </label>
               <button
-                className="rounded-md bg-slate-950 px-5 py-3 font-bold text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-70"
+                className="w-full rounded-md bg-slate-950 px-5 py-3 font-bold text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-70 md:w-auto"
                 disabled={submitting || !firebaseReady}
                 type="submit"
               >

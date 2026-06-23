@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <main className="mx-auto grid min-h-[60vh] w-full max-w-4xl place-items-center px-4 py-16 sm:px-6 lg:px-8">
-        <div className="w-full rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="w-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
           <div className="h-7 w-48 animate-pulse rounded bg-slate-200" />
           <div className="mt-5 grid gap-3">
             <div className="h-4 animate-pulse rounded bg-slate-200" />
@@ -33,11 +33,11 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   if (!user) {
     return (
       <main className="mx-auto grid min-h-[60vh] w-full max-w-4xl place-items-center px-4 py-16 text-center sm:px-6 lg:px-8">
-        <div className="rounded-lg border border-slate-200 bg-white p-10 shadow-sm">
-          <h1 className="text-3xl font-black text-slate-950">Supplier login required</h1>
+        <div className="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+          <h1 className="text-2xl font-black text-slate-950 sm:text-3xl">Supplier login required</h1>
           <p className="mt-3 text-slate-600">Sign in before posting or managing materials.</p>
           <Link
-            className="mt-6 inline-flex rounded-md bg-cyan-700 px-5 py-3 font-black text-white"
+            className="mt-6 inline-flex w-full justify-center rounded-md bg-cyan-700 px-5 py-3 font-black text-white sm:w-auto"
             href={`/login?redirect=${encodeURIComponent(pathname)}`}
           >
             Continue to login

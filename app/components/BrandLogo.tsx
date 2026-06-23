@@ -14,13 +14,13 @@ export default function BrandLogo({
   const fineText = inverse ? "text-slate-300" : "text-slate-500";
 
   return (
-    <Link className="flex min-w-fit items-center gap-3" href="/">
+    <Link className="flex min-w-0 max-w-full flex-shrink-0 items-center gap-2 sm:gap-3" href="/">
       <span
-        className="grid h-16 w-16 shrink-0 place-items-end text-blue-600"
+        className="grid h-11 w-11 flex-shrink-0 place-items-end text-blue-600 sm:h-16 sm:w-16"
         aria-hidden="true"
       >
         <svg
-          className="h-16 w-16"
+          className="h-11 w-11 sm:h-16 sm:w-16"
           fill="none"
           viewBox="0 0 76 70"
           xmlns="http://www.w3.org/2000/svg"
@@ -68,9 +68,9 @@ export default function BrandLogo({
         </svg>
       </span>
 
-      <span className="min-w-0">
+      <span className="min-w-0 max-w-full">
         <span
-          className={`block whitespace-nowrap text-3xl font-extrabold leading-none sm:text-4xl ${primaryText}`}
+          className={`block truncate whitespace-nowrap text-2xl font-extrabold leading-none sm:text-4xl ${primaryText}`}
         >
           Market<span className="text-blue-600">PlaceX</span>
         </span>

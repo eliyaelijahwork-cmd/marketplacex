@@ -37,11 +37,11 @@ export default function MaterialDetailsClient({ materialId }: MaterialDetailsCli
   if (!material) {
     return (
       <main className="mx-auto grid min-h-[60vh] w-full max-w-4xl place-items-center px-4 py-16 text-center sm:px-6 lg:px-8">
-        <div className="rounded-lg border border-slate-200 bg-white p-10 shadow-sm">
-          <h1 className="text-3xl font-black text-slate-950">Material not found</h1>
+        <div className="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+          <h1 className="text-2xl font-black text-slate-950 sm:text-3xl">Material not found</h1>
           <p className="mt-3 text-slate-600">The listing may have been deleted by its supplier.</p>
           <Link
-            className="mt-6 inline-flex rounded-md bg-cyan-700 px-5 py-3 font-black text-white"
+            className="mt-6 inline-flex w-full justify-center rounded-md bg-cyan-700 px-5 py-3 font-black text-white sm:w-auto"
             href="/materials"
           >
             Back to marketplace
@@ -59,21 +59,21 @@ export default function MaterialDetailsClient({ materialId }: MaterialDetailsCli
 
   return (
     <main className="bg-slate-50">
-      <section className="bg-white py-10">
-        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
-          <div>
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+      <section className="bg-white py-8 sm:py-10">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-8">
+          <div className="min-w-0">
+            <div className="aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
               <img
                 alt={`${material.materialName} gallery image`}
-                className="aspect-[4/3] w-full object-cover"
+                className="h-full w-full max-w-full object-cover"
                 src={images[activeImage]}
               />
             </div>
-            <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-8">
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
               {images.map((image, index) => (
                 <button
                   aria-label={`View image ${index + 1}`}
-                  className={`overflow-hidden rounded-md border ${
+                  className={`aspect-square w-16 flex-shrink-0 overflow-hidden rounded-md border sm:w-20 ${
                     activeImage === index ? "border-cyan-600" : "border-slate-200"
                   }`}
                   key={`${image}-${index}`}
@@ -82,7 +82,7 @@ export default function MaterialDetailsClient({ materialId }: MaterialDetailsCli
                 >
                   <img
                     alt=""
-                    className="aspect-square w-full object-cover"
+                    className="aspect-square h-auto w-full object-cover"
                     src={image}
                   />
                 </button>
@@ -90,15 +90,15 @@ export default function MaterialDetailsClient({ materialId }: MaterialDetailsCli
             </div>
           </div>
 
-          <div className="flex flex-col">
+          <div className="min-w-0">
             <p className="text-sm font-black uppercase text-cyan-700">
               {getCategoryName(material.category)}
             </p>
-            <h1 className="mt-3 text-4xl font-black leading-tight text-slate-950">
+            <h1 className="mt-3 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
               {material.materialName}
             </h1>
             <div className="mt-4 flex flex-wrap items-end gap-x-4 gap-y-2">
-              <p className="text-4xl font-black text-cyan-700">
+              <p className="text-3xl font-black text-cyan-700 sm:text-4xl">
                 {formatCurrency(material.price)}
               </p>
               <p className="pb-1 text-lg font-bold text-slate-500">/ {material.unit}</p>
@@ -119,16 +119,16 @@ export default function MaterialDetailsClient({ materialId }: MaterialDetailsCli
               />
             </div>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <a
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-emerald-600 px-5 py-3 font-black text-white transition hover:bg-emerald-700"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-emerald-600 px-5 py-3 font-black text-white transition hover:bg-emerald-700"
                 href={getTelUrl(material.supplierPhoneNumber)}
               >
                 <Icon path="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07A19.5 19.5 0 0 1 3.16 10.8 19.8 19.8 0 0 1 .09 2.18 2 2 0 0 1 2.06 0h3a2 2 0 0 1 2 1.72c.13 1 .36 1.96.7 2.88a2 2 0 0 1-.45 2.11L6.1 7.9a16 16 0 0 0 6 6l1.19-1.19a2 2 0 0 1 2.11-.45c.92.34 1.88.57 2.88.7A2 2 0 0 1 22 16.92Z" />
                 Call Now
               </a>
               <a
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-5 py-3 font-black text-emerald-800 transition hover:bg-emerald-100"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-5 py-3 font-black text-emerald-800 transition hover:bg-emerald-100"
                 href={getWhatsAppUrl(material.supplierWhatsappNumber)}
                 rel="noreferrer"
                 target="_blank"
@@ -137,7 +137,7 @@ export default function MaterialDetailsClient({ materialId }: MaterialDetailsCli
                 WhatsApp
               </a>
               <Link
-                className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 font-black text-slate-800 transition hover:border-cyan-500 hover:text-cyan-700"
+                className="inline-flex w-full items-center justify-center rounded-md border border-slate-300 px-5 py-3 font-black text-slate-800 transition hover:border-cyan-500 hover:text-cyan-700"
                 href={`/suppliers/${material.supplierId}`}
               >
                 Supplier Profile
@@ -148,16 +148,16 @@ export default function MaterialDetailsClient({ materialId }: MaterialDetailsCli
       </section>
 
       <section className="py-10">
-        <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[0.75fr_1fr] lg:px-8">
-          <article className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)] lg:px-8">
+          <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
             <p className="text-sm font-black uppercase text-cyan-700">Supplier profile</p>
-            <div className="mt-4 flex items-start gap-4">
+            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
               <img
                 alt={`${material.supplierName} profile`}
-                className="h-16 w-16 rounded-lg object-cover"
+                className="aspect-square h-auto w-16 flex-shrink-0 rounded-lg object-cover"
                 src={material.supplierPhoto || defaultMaterialImage}
               />
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-2xl font-black text-slate-950">
                   {material.supplierCompanyName || material.supplierName}
                 </h2>
@@ -178,7 +178,7 @@ export default function MaterialDetailsClient({ materialId }: MaterialDetailsCli
 
           <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
             <iframe
-              className="h-80 w-full"
+              className="h-[45vh] min-h-72 max-h-96 w-full"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               src={`https://www.google.com/maps?q=${material.latitude},${material.longitude}&output=embed`}
@@ -192,7 +192,7 @@ export default function MaterialDetailsClient({ materialId }: MaterialDetailsCli
         <section className="bg-white py-10">
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-black text-slate-950">Similar Materials</h2>
-            <div className="mt-6 grid gap-5 md:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {similarMaterials.map((item) => (
                 <MaterialCard compact key={item.id} material={item} />
               ))}
@@ -214,11 +214,11 @@ function InfoRow({
   value: string;
 }) {
   return (
-    <div className="flex gap-3 text-sm">
+    <div className="flex min-w-0 gap-3 text-sm">
       <span className="mt-0.5 text-cyan-700">
         <Icon path={icon} />
       </span>
-      <div>
+      <div className="min-w-0">
         <p className="font-black text-slate-950">{label}</p>
         <p className="mt-1 leading-6 text-slate-600">{value}</p>
       </div>
@@ -228,7 +228,7 @@ function InfoRow({
 
 function DetailsSkeleton() {
   return (
-    <main className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:px-8">
+    <main className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:px-8">
       <div className="aspect-[4/3] animate-pulse rounded-lg bg-slate-200" />
       <div className="grid content-start gap-4">
         <div className="h-5 w-32 animate-pulse rounded bg-slate-200" />

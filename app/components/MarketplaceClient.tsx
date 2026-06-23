@@ -27,12 +27,12 @@ export default function MarketplaceClient({ initialFilters }: MarketplaceClientP
   return (
     <main className="bg-slate-50">
       <section className="border-b border-slate-200 bg-white py-10">
-        <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end lg:px-8">
+        <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:px-8">
           <div>
             <p className="text-sm font-black uppercase text-cyan-700">
               Marketplace listings
             </p>
-            <h1 className="mt-3 text-4xl font-black text-slate-950">
+            <h1 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">
               Construction Materials Near You
             </h1>
             <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
@@ -44,8 +44,8 @@ export default function MarketplaceClient({ initialFilters }: MarketplaceClientP
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[290px_minmax(0,1fr)] lg:px-8">
-        <aside className="h-fit rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:sticky lg:top-44">
+      <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] lg:px-8">
+        <aside className="h-fit max-w-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:sticky lg:top-44">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-lg font-black text-slate-950">Filters</h2>
             <button
@@ -125,7 +125,7 @@ export default function MarketplaceClient({ initialFilters }: MarketplaceClientP
               )}
             </label>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-bold text-slate-700">
                 Min price
                 <input
@@ -183,7 +183,7 @@ export default function MarketplaceClient({ initialFilters }: MarketplaceClientP
         </aside>
 
         <div>
-          <div className="mb-5 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-5 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
             <div>
               <p className="font-black text-slate-950">
                 {loading ? "Loading listings..." : `${visibleMaterials.length} materials found`}
@@ -195,7 +195,7 @@ export default function MarketplaceClient({ initialFilters }: MarketplaceClientP
               </p>
             </div>
             <Link
-              className="rounded-md bg-cyan-700 px-4 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-800"
+              className="w-full rounded-md bg-cyan-700 px-4 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-800 md:w-auto"
               href="/login?redirect=/supplier-dashboard"
             >
               Post a listing
@@ -211,7 +211,7 @@ export default function MarketplaceClient({ initialFilters }: MarketplaceClientP
           {loading ? (
             <ListingSkeleton />
           ) : visibleMaterials.length ? (
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {visibleMaterials.map((material) => (
                 <MaterialCard key={material.id} material={material} />
               ))}
@@ -231,11 +231,11 @@ export default function MarketplaceClient({ initialFilters }: MarketplaceClientP
 }
 
 const inputClass =
-  "rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100 disabled:bg-slate-100";
+  "w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100 disabled:bg-slate-100";
 
 function ListingSkeleton() {
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"

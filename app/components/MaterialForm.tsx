@@ -34,7 +34,7 @@ type MaterialFormState = {
 
 const units = ["Ton", "Bag", "Piece", "Kg", "Meter", "Sheet", "Box", "Roll", "Unit"];
 const inputClass =
-  "rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
+  "w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
 
 export default function MaterialForm({ supplier, initialMaterial, onSaved }: MaterialFormProps) {
   const { location } = useLocation();
@@ -161,13 +161,13 @@ export default function MaterialForm({ supplier, initialMaterial, onSaved }: Mat
   }
 
   return (
-    <form className="grid gap-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
+    <form className="grid max-w-full gap-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8" onSubmit={handleSubmit}>
       {!verifiedSupplier && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
           Material posting is locked until this supplier is verified.
         </div>
       )}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field label="Material Name" name="materialName" onChange={updateField} required value={form.materialName} />
         <label className="grid gap-2 text-sm font-bold text-slate-700">
           Category
@@ -226,8 +226,8 @@ export default function MaterialForm({ supplier, initialMaterial, onSaved }: Mat
       </div>
 
       <div className="grid gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
             <p className="text-sm font-black text-slate-950">Material Images</p>
             <p className="mt-1 text-xs font-semibold text-slate-500">
               Upload up to {maxListingImages} JPG, PNG, or WebP images. New uploads replace existing images while editing.
@@ -235,6 +235,7 @@ export default function MaterialForm({ supplier, initialMaterial, onSaved }: Mat
           </div>
           <input
             accept={allowedImageTypes.join(",")}
+            className="w-full max-w-full text-sm md:w-auto"
             multiple
             onChange={handleFiles}
             type="file"
@@ -242,11 +243,11 @@ export default function MaterialForm({ supplier, initialMaterial, onSaved }: Mat
         </div>
 
         {(previews.length > 0 || initialMaterial?.images.length) && (
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:grid-cols-5">
             {(previews.length ? previews : initialMaterial?.images ?? []).slice(0, 10).map((image, index) => (
               <img
                 alt={`Selected material preview ${index + 1}`}
-                className="aspect-square rounded-md object-cover"
+                className="aspect-square w-full rounded-md object-cover"
                 key={`${image}-${index}`}
                 src={image}
               />
@@ -267,17 +268,17 @@ export default function MaterialForm({ supplier, initialMaterial, onSaved }: Mat
         )}
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:flex md:flex-wrap">
           <button
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-black text-slate-800 transition hover:border-cyan-500 hover:text-cyan-700"
+            className="w-full rounded-md border border-slate-300 px-4 py-2 text-sm font-black text-slate-800 transition hover:border-cyan-500 hover:text-cyan-700 md:w-auto"
             onClick={fillFromProfile}
             type="button"
           >
             Use profile address
           </button>
           <button
-            className="rounded-md border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-black text-cyan-800 transition hover:bg-cyan-100 disabled:opacity-60"
+            className="w-full rounded-md border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-black text-cyan-800 transition hover:bg-cyan-100 disabled:opacity-60 md:w-auto"
             disabled={!location}
             onClick={fillFromLocation}
             type="button"
@@ -286,7 +287,7 @@ export default function MaterialForm({ supplier, initialMaterial, onSaved }: Mat
           </button>
         </div>
         <button
-          className="rounded-md bg-cyan-700 px-5 py-3 text-sm font-black text-white transition hover:bg-cyan-800 disabled:cursor-wait disabled:opacity-70"
+          className="w-full rounded-md bg-cyan-700 px-5 py-3 text-sm font-black text-white transition hover:bg-cyan-800 disabled:cursor-wait disabled:opacity-70 md:w-auto"
           disabled={saving || !verifiedSupplier}
           type="submit"
         >

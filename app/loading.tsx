@@ -1,8 +1,8 @@
 export default function Loading() {
   return (
-    <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:px-8">
+    <main className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-10 sm:px-6 lg:px-8">
       <div className="h-40 animate-pulse rounded-lg bg-slate-200" />
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, index) => (
           <div className="overflow-hidden rounded-lg border border-slate-200 bg-white" key={index}>
             <div className="aspect-[4/3] animate-pulse bg-slate-200" />

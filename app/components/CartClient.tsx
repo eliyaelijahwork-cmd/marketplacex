@@ -36,14 +36,14 @@ export default function CartClient() {
   if (lines.length === 0) {
     return (
       <section className="mx-auto w-full max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8">
-        <div className="rounded-lg border border-slate-200 bg-white p-10 shadow-sm">
-          <h1 className="text-3xl font-bold text-slate-950">Your cart is empty</h1>
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+          <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">Your cart is empty</h1>
           <p className="mt-3 text-slate-600">
             Add products from the catalog to build your construction material
             order.
           </p>
           <Link
-            className="mt-6 inline-flex rounded-md bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800"
+            className="mt-6 inline-flex w-full justify-center rounded-md bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800 sm:w-auto"
             href="/categories"
           >
             Browse categories
@@ -54,16 +54,16 @@ export default function CartClient() {
   }
 
   return (
-    <section className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8">
-      <div>
-        <h1 className="text-4xl font-bold text-slate-950">Cart</h1>
+    <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,22.5rem)] lg:px-8">
+      <div className="min-w-0">
+        <h1 className="text-3xl font-bold text-slate-950 sm:text-4xl">Cart</h1>
         <div className="mt-6 grid gap-4">
           {lines.map((line) => (
             <article
-              className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-[1fr_auto]"
+              className="grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5 md:grid-cols-[minmax(0,1fr)_auto]"
               key={line.slug}
             >
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-xl font-semibold text-slate-950">
                   {line.name}
                 </h2>
@@ -72,8 +72,8 @@ export default function CartClient() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <label className="flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700">
+              <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+                <label className="flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 md:w-auto">
                   Qty
                   <input
                     aria-label={`${line.name} cart quantity`}
@@ -86,11 +86,11 @@ export default function CartClient() {
                     value={line.quantity}
                   />
                 </label>
-                <p className="min-w-24 text-right font-bold text-slate-950">
+                <p className="text-left font-bold text-slate-950 md:min-w-24 md:text-right">
                   {formatCurrency(line.price * line.quantity)}
                 </p>
                 <button
-                  className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-600 hover:text-blue-700"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-600 hover:text-blue-700 md:w-auto"
                   onClick={() => removeLine(line.slug)}
                   type="button"
                 >
@@ -102,30 +102,30 @@ export default function CartClient() {
         </div>
       </div>
 
-      <aside className="h-fit rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <aside className="h-fit max-w-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
         <h2 className="text-2xl font-bold text-slate-950">Order summary</h2>
         <div className="mt-5 grid gap-3 text-slate-700">
           <div className="flex justify-between gap-4">
             <span>Subtotal</span>
-            <span>{formatCurrency(subtotal)}</span>
+            <span className="text-right">{formatCurrency(subtotal)}</span>
           </div>
           <div className="flex justify-between gap-4">
             <span>Delivery estimate</span>
-            <span>{formatCurrency(delivery)}</span>
+            <span className="text-right">{formatCurrency(delivery)}</span>
           </div>
           <div className="flex justify-between gap-4">
             <span>Service fee</span>
-            <span>{formatCurrency(serviceFee)}</span>
+            <span className="text-right">{formatCurrency(serviceFee)}</span>
           </div>
           <div className="border-t border-slate-200 pt-3">
             <div className="flex justify-between gap-4 text-lg font-bold text-slate-950">
               <span>Total</span>
-              <span>{formatCurrency(total)}</span>
+              <span className="text-right">{formatCurrency(total)}</span>
             </div>
           </div>
         </div>
         <Link
-          className="mt-6 block rounded-md bg-blue-700 px-5 py-3 text-center font-semibold text-white transition hover:bg-blue-800"
+          className="mt-6 block w-full rounded-md bg-blue-700 px-5 py-3 text-center font-semibold text-white transition hover:bg-blue-800"
           href="/checkout"
         >
           Continue to checkout

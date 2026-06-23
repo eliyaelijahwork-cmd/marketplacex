@@ -78,16 +78,16 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
+    <div className="grid max-w-full grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
       <form
-        className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+        className="max-w-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8"
         onSubmit={handleSubmit}
       >
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             Supplier name
             <input
-              className="rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               name="supplierName"
               placeholder="Your company name"
               required
@@ -96,7 +96,7 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             Material name
             <input
-              className="rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               name="materialName"
               placeholder="Example: Red Bricks"
               required
@@ -105,7 +105,7 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             Category
             <select
-              className="rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               name="categorySlug"
               required
             >
@@ -119,7 +119,7 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             Price
             <input
-              className="rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               min="1"
               name="price"
               placeholder="1250"
@@ -130,7 +130,7 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             Unit
             <select
-              className="rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               name="unit"
               required
             >
@@ -144,7 +144,7 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             Quantity available
             <input
-              className="rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               name="quantity"
               placeholder="100 tons"
               required
@@ -153,7 +153,7 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             Location
             <input
-              className="rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               name="location"
               placeholder="Chennai"
               required
@@ -162,7 +162,7 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             Delivery
             <select
-              className="rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               name="delivery"
               required
             >
@@ -176,18 +176,18 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
           <label className="grid gap-2 text-sm font-semibold text-slate-800 md:col-span-2">
             Notes
             <textarea
-              className="min-h-24 resize-y rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="min-h-24 w-full min-w-0 resize-y rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               name="notes"
               placeholder="Brand, grade, dispatch timing, or minimum order"
             />
           </label>
         </div>
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <p className="min-h-6 text-sm font-semibold text-green-700">
             {status}
           </p>
           <button
-            className="rounded-md bg-blue-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-800"
+            className="w-full rounded-md bg-blue-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-800 md:w-auto"
             type="submit"
           >
             Post Material
@@ -195,7 +195,7 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
         </div>
       </form>
 
-      <aside className="rounded-lg border border-blue-100 bg-blue-50 p-5">
+      <aside className="max-w-full rounded-lg border border-blue-100 bg-blue-50 p-4 sm:p-6 lg:p-8">
         <p className="text-sm font-bold uppercase text-blue-700">
           Supplier post queue
         </p>
@@ -210,8 +210,8 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
           )}
           {listings.map((listing) => (
             <article className="py-4" key={listing.id}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
+              <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0">
                   <p className="font-bold text-slate-950">
                     {listing.materialName}
                   </p>
@@ -220,7 +220,7 @@ export default function SupplierPostForm({ categories }: SupplierPostFormProps) 
                     {listing.supplierName}
                   </p>
                 </div>
-                <p className="text-right font-bold text-blue-700">
+                <p className="flex-shrink-0 font-bold text-blue-700 md:text-right">
                   {formatCurrency(listing.price)}
                   <span className="block text-xs font-semibold text-slate-500">
                     / {listing.unit}

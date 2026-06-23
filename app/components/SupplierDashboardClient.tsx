@@ -36,6 +36,7 @@ function DashboardContent() {
   const { user, profile, firebaseReady } = useAuth();
   const { materials, loading } = useMaterials();
   const [activeTab, setActiveTab] = useState<TabId>("profile");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<MaterialListing | null>(null);
   const [deleteStatus, setDeleteStatus] = useState("");
   const [deleteError, setDeleteError] = useState("");
@@ -65,13 +66,23 @@ function DashboardContent() {
     }
   }
 
+  function selectTab(tabId: TabId) {
+    setActiveTab(tabId);
+    setSidebarOpen(false);
+    if (tabId !== "listings") {
+      setEditingMaterial(null);
+    }
+  }
+
+  const activeTabLabel = tabs.find((tab) => tab.id === activeTab)?.label ?? "Dashboard";
+
   return (
     <main className="bg-slate-50">
       <section className="border-b border-slate-200 bg-white py-10">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:px-6 md:flex-row md:items-end md:justify-between lg:px-8">
           <div>
             <p className="text-sm font-black uppercase text-cyan-700">Supplier dashboard</p>
-            <h1 className="mt-3 text-4xl font-black text-slate-950">
+            <h1 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">
               Manage profile, listings, and buyer reach.
             </h1>
             <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
@@ -80,7 +91,7 @@ function DashboardContent() {
             </p>
           </div>
           <Link
-            className="rounded-md bg-cyan-700 px-5 py-3 text-center font-black text-white transition hover:bg-cyan-800"
+            className="w-full rounded-md bg-cyan-700 px-5 py-3 text-center font-black text-white transition hover:bg-cyan-800 md:w-auto"
             href="/materials"
           >
             View Marketplace
@@ -88,7 +99,7 @@ function DashboardContent() {
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
+      <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:px-8">
         {!firebaseReady && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
             Firebase env values are missing. Add root `.env.local`, then enable Google and Phone
@@ -96,7 +107,7 @@ function DashboardContent() {
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Active listings" value={String(supplierMaterials.length)} />
           <Stat label="Total inventory value" value={formatCurrency(analytics.inventoryValue)} />
           <Stat label="Categories covered" value={String(analytics.categoryCount)} />
@@ -113,124 +124,140 @@ function DashboardContent() {
           </div>
         )}
 
-        <div className="flex gap-2 overflow-x-auto rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
-          {tabs.map((tab) => (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+          <div className="grid gap-3">
             <button
-              className={`min-w-fit rounded-md px-4 py-2 text-sm font-black transition ${
-                activeTab === tab.id
-                  ? "bg-slate-950 text-white"
-                  : "text-slate-700 hover:bg-cyan-50 hover:text-cyan-700"
-              }`}
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id);
-                if (tab.id !== "listings") {
-                  setEditingMaterial(null);
-                }
-              }}
+              aria-expanded={sidebarOpen}
+              className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white p-4 text-left text-sm font-black text-slate-950 shadow-sm lg:hidden"
+              onClick={() => setSidebarOpen((open) => !open)}
               type="button"
             >
-              {tab.label}
+              <span>{activeTabLabel}</span>
+              <Icon path={sidebarOpen ? "m18 15-6-6-6 6" : "m6 9 6 6 6-6"} />
             </button>
-          ))}
-        </div>
 
-        {activeTab === "profile" && <SupplierProfileForm />}
+            <aside
+              className={`${
+                sidebarOpen ? "grid" : "hidden"
+              } gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm lg:sticky lg:top-40 lg:grid lg:h-fit`}
+            >
+              {tabs.map((tab) => (
+                <button
+                  className={`flex w-full items-center justify-between rounded-md px-4 py-3 text-left text-sm font-black transition ${
+                    activeTab === tab.id
+                      ? "bg-slate-950 text-white"
+                      : "text-slate-700 hover:bg-cyan-50 hover:text-cyan-700"
+                  }`}
+                  key={tab.id}
+                  onClick={() => selectTab(tab.id)}
+                  type="button"
+                >
+                  <span>{tab.label}</span>
+                  {activeTab === tab.id && <Icon path="m5 12 4 4L19 6" />}
+                </button>
+              ))}
+            </aside>
+          </div>
 
-        {activeTab === "add" && (
-          <section className="grid gap-4">
-            {!completeProfile && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
-                Complete your supplier profile first so listings include contact details and GPS
-                location.
-              </div>
-            )}
-            {profile && completeProfile ? (
-              verifiedSupplier ? (
-                <MaterialForm supplier={profile} onSaved={() => setActiveTab("listings")} />
-              ) : (
-                <VerificationLocked />
-              )
-            ) : (
-              <SupplierProfileForm />
-            )}
-          </section>
-        )}
+          <div className="min-w-0">
+            {activeTab === "profile" && <SupplierProfileForm />}
 
-        {activeTab === "listings" && (
-          <section className="grid gap-5">
-            {editingMaterial && profile && verifiedSupplier ? (
-              <div className="grid gap-4">
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-2xl font-black text-slate-950">
-                    Edit {editingMaterial.materialName}
-                  </h2>
-                  <button
-                    className="rounded-md border border-slate-300 px-4 py-2 text-sm font-black text-slate-700"
-                    onClick={() => setEditingMaterial(null)}
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                </div>
-                <MaterialForm
-                  initialMaterial={editingMaterial}
-                  onSaved={() => setEditingMaterial(null)}
-                  supplier={profile}
-                />
-              </div>
-            ) : (
-              <ListingTable
-                loading={loading}
-                materials={supplierMaterials}
-                onDelete={handleDelete}
-                onEdit={setEditingMaterial}
-                canEdit={verifiedSupplier}
-              />
-            )}
-            {(deleteStatus || deleteError) && (
-              <p
-                className={`rounded-md p-3 text-sm font-semibold ${
-                  deleteError ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"
-                }`}
-              >
-                {deleteError || deleteStatus}
-              </p>
-            )}
-          </section>
-        )}
-
-        {activeTab === "analytics" && (
-          <section className="grid gap-5 lg:grid-cols-[1fr_0.8fr]">
-            <article className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-2xl font-black text-slate-950">Category performance</h2>
-              <div className="mt-5 grid gap-3">
-                {analytics.byCategory.map((item) => (
-                  <div
-                    className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[1fr_auto]"
-                    key={item.category}
-                  >
-                    <p className="font-black text-slate-950">{getCategoryName(item.category)}</p>
-                    <p className="text-sm font-bold text-cyan-700">
-                      {item.count} listings · {formatCurrency(item.value)}
-                    </p>
+            {activeTab === "add" && (
+              <section className="grid gap-4">
+                {!completeProfile && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
+                    Complete your supplier profile first so listings include contact details and GPS
+                    location.
                   </div>
-                ))}
-                {analytics.byCategory.length === 0 && (
-                  <p className="text-slate-600">Analytics appear after your first listing.</p>
                 )}
-              </div>
-            </article>
-            <article className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-2xl font-black text-slate-950">Buyer actions tracked</h2>
-              <div className="mt-5 grid gap-3 text-sm font-semibold text-slate-700">
-                <p>Call clicks: ready for analytics integration</p>
-                <p>WhatsApp clicks: ready for analytics integration</p>
-                <p>Listing views: page-level tracking hook can be added here</p>
-              </div>
-            </article>
-          </section>
-        )}
+                {profile && completeProfile ? (
+                  verifiedSupplier ? (
+                    <MaterialForm supplier={profile} onSaved={() => selectTab("listings")} />
+                  ) : (
+                    <VerificationLocked />
+                  )
+                ) : (
+                  <SupplierProfileForm />
+                )}
+              </section>
+            )}
+
+            {activeTab === "listings" && (
+              <section className="grid gap-5">
+                {editingMaterial && profile && verifiedSupplier ? (
+                  <div className="grid gap-4">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <h2 className="text-2xl font-black text-slate-950">
+                        Edit {editingMaterial.materialName}
+                      </h2>
+                      <button
+                        className="w-full rounded-md border border-slate-300 px-4 py-2 text-sm font-black text-slate-700 md:w-auto"
+                        onClick={() => setEditingMaterial(null)}
+                        type="button"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <MaterialForm
+                      initialMaterial={editingMaterial}
+                      onSaved={() => setEditingMaterial(null)}
+                      supplier={profile}
+                    />
+                  </div>
+                ) : (
+                  <ListingTable
+                    loading={loading}
+                    materials={supplierMaterials}
+                    onDelete={handleDelete}
+                    onEdit={setEditingMaterial}
+                    canEdit={verifiedSupplier}
+                  />
+                )}
+                {(deleteStatus || deleteError) && (
+                  <p
+                    className={`rounded-md p-3 text-sm font-semibold ${
+                      deleteError ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"
+                    }`}
+                  >
+                    {deleteError || deleteStatus}
+                  </p>
+                )}
+              </section>
+            )}
+
+            {activeTab === "analytics" && (
+              <section className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
+                <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+                  <h2 className="text-2xl font-black text-slate-950">Category performance</h2>
+                  <div className="mt-5 grid gap-3">
+                    {analytics.byCategory.map((item) => (
+                      <div
+                        className="grid grid-cols-1 gap-2 rounded-md border border-slate-200 bg-slate-50 p-4 md:grid-cols-[minmax(0,1fr)_auto]"
+                        key={item.category}
+                      >
+                        <p className="font-black text-slate-950">{getCategoryName(item.category)}</p>
+                        <p className="text-sm font-bold text-cyan-700">
+                          {item.count} listings · {formatCurrency(item.value)}
+                        </p>
+                      </div>
+                    ))}
+                    {analytics.byCategory.length === 0 && (
+                      <p className="text-slate-600">Analytics appear after your first listing.</p>
+                    )}
+                  </div>
+                </article>
+                <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+                  <h2 className="text-2xl font-black text-slate-950">Buyer actions tracked</h2>
+                  <div className="mt-5 grid gap-3 text-sm font-semibold text-slate-700">
+                    <p>Call clicks: ready for analytics integration</p>
+                    <p>WhatsApp clicks: ready for analytics integration</p>
+                    <p>Listing views: page-level tracking hook can be added here</p>
+                  </div>
+                </article>
+              </section>
+            )}
+          </div>
+        </div>
       </section>
     </main>
   );
@@ -334,6 +361,26 @@ function Stat({ label, value }: { label: string; value: string }) {
       <p className="text-sm font-black uppercase text-slate-500">{label}</p>
       <p className="mt-3 text-2xl font-black text-slate-950">{value}</p>
     </article>
+  );
+}
+
+function Icon({ path }: { path: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4 flex-shrink-0"
+      fill="none"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d={path}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
   );
 }
 

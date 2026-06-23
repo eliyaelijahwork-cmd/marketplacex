@@ -49,29 +49,29 @@ export default function ProductBrowser({
   }, [categorySlug, products, query]);
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       {(title || showSearch || showCategoryFilter) && (
-        <div className="mb-8 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           {title && (
             <div>
               <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
                 Product catalog
               </p>
-              <h2 className="mt-2 text-3xl font-bold text-slate-950">
+              <h2 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">
                 {title}
               </h2>
             </div>
           )}
 
           {(showSearch || showCategoryFilter) && (
-            <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-[minmax(0,1fr)_220px]">
+            <div className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)]">
               {showSearch && (
                 <label className="flex flex-col gap-2">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Search
                   </span>
                   <input
-                    className="rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Search products"
                     type="search"
@@ -86,7 +86,7 @@ export default function ProductBrowser({
                     Category
                   </span>
                   <select
-                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                     onChange={(event) => setCategorySlug(event.target.value)}
                     value={categorySlug}
                   >
@@ -104,16 +104,16 @@ export default function ProductBrowser({
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {visibleProducts.map((product) => {
           const supplier = getSupplier(product.supplierId);
 
           return (
             <article
-              className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+              className="max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
               key={product.slug}
             >
-              <div className="relative h-40 bg-slate-100">
+              <div className="relative aspect-[4/3] w-full bg-slate-100 sm:aspect-[16/9]">
                 <Image
                   alt={`${product.name} construction material`}
                   className="object-cover"
@@ -129,11 +129,11 @@ export default function ProductBrowser({
 
               <div className="grid gap-4 p-5">
                 <div>
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                     <h3 className="text-lg font-semibold text-slate-950">
                       {product.name}
                     </h3>
-                    <p className="text-right text-lg font-bold text-blue-700">
+                    <p className="text-left text-lg font-bold text-blue-700 md:text-right">
                       {formatCurrency(product.price)}
                     </p>
                   </div>

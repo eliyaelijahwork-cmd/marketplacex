@@ -10,9 +10,9 @@ export default function LocationButton({ compact = false }: LocationButtonProps)
   const { location, loading, error, requestLocation, clearLocation } = useLocation();
 
   return (
-    <div className="flex min-w-0 flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1 md:w-auto">
       <button
-        className="inline-flex max-w-full items-center gap-2 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm font-bold text-cyan-900 transition hover:bg-cyan-100 disabled:cursor-wait disabled:opacity-70"
+        className="inline-flex w-full max-w-full items-center justify-center gap-2 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm font-bold text-cyan-900 transition hover:bg-cyan-100 disabled:cursor-wait disabled:opacity-70 md:w-auto"
         disabled={loading}
         onClick={requestLocation}
         type="button"
@@ -46,7 +46,7 @@ function Icon({ path }: { path: string }) {
   return (
     <svg
       aria-hidden="true"
-      className="h-4 w-4 shrink-0"
+      className="h-4 w-4 flex-shrink-0"
       fill="none"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"

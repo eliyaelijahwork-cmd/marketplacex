@@ -10,7 +10,7 @@ import {
 } from "@/app/lib/firebase/marketplace";
 
 const inputClass =
-  "rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
+  "w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
 
 type ProfileFormState = {
   supplierName: string;
@@ -160,24 +160,24 @@ export default function SupplierProfileForm() {
   }
 
   return (
-    <form className="grid gap-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
+    <form className="grid max-w-full gap-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8" onSubmit={handleSubmit}>
       {!firebaseReady && (
         <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
           Firebase is not configured. Profile saving is disabled until root `.env.local` is set.
         </div>
       )}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
         <img
           alt="Supplier profile preview"
-          className="h-20 w-20 rounded-lg border border-slate-200 object-cover"
+          className="aspect-square h-auto w-20 flex-shrink-0 rounded-lg border border-slate-200 object-cover"
           src={photoPreview || form.profilePhoto || "/assets/construction-marketplace-hero.png"}
         />
-        <label className="grid gap-2 text-sm font-bold text-slate-700">
+        <label className="grid min-w-0 gap-2 text-sm font-bold text-slate-700">
           Profile photo
           <input
             accept={allowedImageTypes.join(",")}
-            className="text-sm"
+            className="w-full max-w-full text-sm"
             onChange={handlePhotoChange}
             type="file"
           />
@@ -191,7 +191,7 @@ export default function SupplierProfileForm() {
             : "border-amber-200 bg-amber-50 text-amber-900"
         }`}
       >
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <p className="text-base font-black">
             {profile?.isVerified ? "Verified supplier" : "Verification pending"}
           </p>
@@ -206,7 +206,7 @@ export default function SupplierProfileForm() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field label="Supplier Name" name="supplierName" onChange={updateField} required value={form.supplierName} />
         <Field label="Company Name" name="companyName" onChange={updateField} required value={form.companyName} />
         <Field label="Email" name="email" onChange={updateField} type="email" value={form.email} />
@@ -236,9 +236,9 @@ export default function SupplierProfileForm() {
         </label>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <button
-          className="rounded-md border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-black text-cyan-800 transition hover:bg-cyan-100 disabled:opacity-60"
+          className="w-full rounded-md border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-black text-cyan-800 transition hover:bg-cyan-100 disabled:opacity-60 md:w-auto"
           disabled={!canAutoFill}
           onClick={fillFromLocation}
           type="button"
@@ -246,7 +246,7 @@ export default function SupplierProfileForm() {
           Auto-fill from current location
         </button>
         <button
-          className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-70"
+          className="w-full rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-70 md:w-auto"
           disabled={saving || !firebaseReady}
           type="submit"
         >

@@ -114,10 +114,10 @@ export default function SupplierDirectoryClient() {
   return (
     <main className="bg-slate-50">
       <section className="border-b border-slate-200 bg-white py-10">
-        <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end lg:px-8">
+        <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:px-8">
           <div>
             <p className="text-sm font-black uppercase text-cyan-700">Nearby suppliers</p>
-            <h1 className="mt-3 text-4xl font-black text-slate-950">
+            <h1 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">
               Find Construction Material Suppliers
             </h1>
             <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
@@ -130,16 +130,16 @@ export default function SupplierDirectoryClient() {
       </section>
 
       <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6 grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_220px_180px_auto]">
+        <div className="mb-6 grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)_minmax(9rem,12rem)_auto]">
           <input
-            className="rounded-md border border-slate-300 px-3 py-2.5 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
+            className="w-full rounded-md border border-slate-300 px-3 py-2.5 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search supplier, city, or specialty"
             type="search"
             value={query}
           />
           <select
-            className="rounded-md border border-slate-300 bg-white px-3 py-2.5 font-semibold outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-semibold outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
             onChange={(event) => setCategory(event.target.value)}
             value={category}
           >
@@ -161,7 +161,7 @@ export default function SupplierDirectoryClient() {
             ))}
           </select>
           <select
-            className="rounded-md border border-slate-300 bg-white px-3 py-2.5 font-semibold outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-semibold outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
             onChange={(event) => setMinRating(event.target.value)}
             value={minRating}
           >
@@ -171,7 +171,7 @@ export default function SupplierDirectoryClient() {
             <option value="3">3+ stars</option>
           </select>
           <Link
-            className="rounded-md bg-cyan-700 px-5 py-3 text-center font-black text-white transition hover:bg-cyan-800"
+            className="w-full rounded-md bg-cyan-700 px-5 py-3 text-center font-black text-white transition hover:bg-cyan-800 md:w-auto"
             href="/login?redirect=/supplier-dashboard"
           >
             Join as supplier
@@ -181,19 +181,19 @@ export default function SupplierDirectoryClient() {
         {loading ? (
           <SupplierSkeleton />
         ) : suppliers.length ? (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {suppliers.map((supplier) => {
               const distance = location ? distanceInKm(location, supplier) : undefined;
 
               return (
                 <article
-                  className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-cyan-300 hover:shadow-md"
+                  className="max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-cyan-300 hover:shadow-md sm:p-5"
                   key={supplier.uid}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex min-w-0 items-start gap-4">
                     <img
                       alt={`${supplier.companyName} profile`}
-                      className="h-16 w-16 rounded-lg object-cover"
+                      className="aspect-square h-auto w-14 flex-shrink-0 rounded-lg object-cover sm:w-16"
                       src={supplier.profilePhoto || "/assets/construction-marketplace-hero.png"}
                     />
                     <div className="min-w-0">
@@ -232,15 +232,15 @@ export default function SupplierDirectoryClient() {
                     ))}
                   </div>
 
-                  <div className="mt-5 grid grid-cols-3 gap-2">
+                  <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <a
-                      className="rounded-md bg-emerald-600 px-3 py-2 text-center text-sm font-black text-white transition hover:bg-emerald-700"
+                      className="w-full rounded-md bg-emerald-600 px-3 py-2 text-center text-sm font-black text-white transition hover:bg-emerald-700"
                       href={getTelUrl(supplier.phoneNumber)}
                     >
                       Call
                     </a>
                     <a
-                      className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-sm font-black text-emerald-800 transition hover:bg-emerald-100"
+                      className="w-full rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-sm font-black text-emerald-800 transition hover:bg-emerald-100"
                       href={getWhatsAppUrl(supplier.whatsappNumber)}
                       rel="noreferrer"
                       target="_blank"
@@ -248,7 +248,7 @@ export default function SupplierDirectoryClient() {
                       WhatsApp
                     </a>
                     <Link
-                      className="rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-black text-slate-800 transition hover:border-cyan-500 hover:text-cyan-700"
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-black text-slate-800 transition hover:border-cyan-500 hover:text-cyan-700"
                       href={`/suppliers/${supplier.uid}`}
                     >
                       Profile
@@ -291,7 +291,7 @@ function Icon({ path }: { path: string }) {
 
 function SupplierSkeleton() {
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, index) => (
         <div className="h-64 animate-pulse rounded-lg bg-slate-200" key={index} />
       ))}

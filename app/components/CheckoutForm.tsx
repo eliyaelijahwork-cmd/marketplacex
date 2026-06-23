@@ -7,7 +7,7 @@ import { formatCurrency } from "../data/marketplace";
 import { cartSubtotal, type CartLine, readCart, writeCart } from "./cart-storage";
 
 const inputClass =
-  "rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100";
+  "w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100";
 
 export default function CheckoutForm() {
   const [lines] = useState<CartLine[]>(() =>
@@ -28,11 +28,11 @@ export default function CheckoutForm() {
   if (submitted) {
     return (
       <section className="mx-auto w-full max-w-3xl px-4 py-16 text-center sm:px-6 lg:px-8">
-        <div className="rounded-lg border border-slate-200 bg-white p-10 shadow-sm">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
             Order received
           </p>
-          <h1 className="mt-3 text-3xl font-bold text-slate-950">
+          <h1 className="mt-3 text-2xl font-bold text-slate-950 sm:text-3xl">
             Your request has been sent to suppliers.
           </h1>
           <p className="mt-3 text-slate-600">
@@ -40,7 +40,7 @@ export default function CheckoutForm() {
             pricing before dispatch.
           </p>
           <Link
-            className="mt-6 inline-flex rounded-md bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800"
+            className="mt-6 inline-flex w-full justify-center rounded-md bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800 sm:w-auto"
             href="/categories"
           >
             Continue shopping
@@ -51,20 +51,20 @@ export default function CheckoutForm() {
   }
 
   return (
-    <section className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8">
-      <div>
+    <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,22.5rem)] lg:px-8">
+      <div className="min-w-0">
         <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
           Checkout
         </p>
-        <h1 className="mt-3 text-4xl font-bold text-slate-950">
+        <h1 className="mt-3 text-3xl font-bold text-slate-950 sm:text-4xl">
           Delivery and billing
         </h1>
 
         <form
-          className="mt-8 grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+          className="mt-8 grid gap-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8"
           onSubmit={handleSubmit}
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <label className="grid gap-2">
               <span className="text-sm font-medium text-slate-700">Full name</span>
               <input className={inputClass} required type="text" />
@@ -87,7 +87,7 @@ export default function CheckoutForm() {
             <textarea className={`${inputClass} min-h-28`} required />
           </label>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <label className="grid gap-2">
               <span className="text-sm font-medium text-slate-700">
                 Delivery date
@@ -107,7 +107,7 @@ export default function CheckoutForm() {
           </div>
 
           <button
-            className="rounded-md bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800"
+            className="w-full rounded-md bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800 md:w-auto"
             disabled={lines.length === 0}
             type="submit"
           >
@@ -116,7 +116,7 @@ export default function CheckoutForm() {
         </form>
       </div>
 
-      <aside className="h-fit rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <aside className="h-fit max-w-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
         <h2 className="text-2xl font-bold text-slate-950">Order summary</h2>
         <div className="mt-5 grid gap-4">
           {lines.length === 0 ? (
@@ -124,9 +124,9 @@ export default function CheckoutForm() {
           ) : (
             lines.map((line) => (
               <div className="border-b border-slate-100 pb-3" key={line.slug}>
-                <div className="flex justify-between gap-4">
-                  <span className="font-medium text-slate-950">{line.name}</span>
-                  <span>{formatCurrency(line.price * line.quantity)}</span>
+                <div className="flex min-w-0 justify-between gap-4">
+                  <span className="min-w-0 break-words font-medium text-slate-950">{line.name}</span>
+                  <span className="text-right">{formatCurrency(line.price * line.quantity)}</span>
                 </div>
                 <p className="mt-1 text-sm text-slate-500">
                   Qty {line.quantity} | {line.unit}
@@ -138,15 +138,15 @@ export default function CheckoutForm() {
         <div className="mt-5 grid gap-3 text-slate-700">
           <div className="flex justify-between gap-4">
             <span>Subtotal</span>
-            <span>{formatCurrency(subtotal)}</span>
+            <span className="text-right">{formatCurrency(subtotal)}</span>
           </div>
           <div className="flex justify-between gap-4">
             <span>Delivery estimate</span>
-            <span>{formatCurrency(delivery)}</span>
+            <span className="text-right">{formatCurrency(delivery)}</span>
           </div>
           <div className="flex justify-between gap-4 border-t border-slate-200 pt-3 text-lg font-bold text-slate-950">
             <span>Total</span>
-            <span>{formatCurrency(total)}</span>
+            <span className="text-right">{formatCurrency(total)}</span>
           </div>
         </div>
       </aside>

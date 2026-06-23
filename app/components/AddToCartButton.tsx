@@ -72,8 +72,8 @@ export default function AddToCartButton({
   const isCompact = compact || variant === "compact";
 
   return (
-    <div className={isCompact ? "grid gap-2" : "flex flex-col gap-3 sm:flex-row"}>
-      <label className="flex items-center justify-between gap-3 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700">
+    <div className={isCompact ? "grid gap-2" : "flex flex-col gap-3 md:flex-row"}>
+      <label className="flex w-full items-center justify-between gap-3 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 md:w-auto">
         Qty
         <input
           aria-label={`${product.name} quantity`}
@@ -88,7 +88,7 @@ export default function AddToCartButton({
       </label>
 
       <button
-        className="rounded-md bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800"
+        className="w-full rounded-md bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 md:w-auto"
         onClick={handleAdd}
         type="button"
       >

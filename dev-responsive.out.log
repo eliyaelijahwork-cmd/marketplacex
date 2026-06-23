@@ -1,0 +1,13 @@
+
+> marketplacex@0.1.0 dev
+> next dev --port 3000
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.243.181:3000
+- Environments: .env.local
+✓ Ready in 7.7s
+
+○ Compiling / ...
+✓ Finished writing to filesystem cache in 18.9s
+✓ Finished writing to filesystem cache in 87s

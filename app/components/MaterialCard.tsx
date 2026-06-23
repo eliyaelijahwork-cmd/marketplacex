@@ -38,11 +38,11 @@ export default function MaterialCard({ material, compact = false }: MaterialCard
   }
 
   return (
-    <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:border-cyan-300 hover:shadow-md">
+    <article className="max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:border-cyan-300 hover:shadow-md">
       <div className="relative aspect-[4/3] bg-slate-100">
         <img
           alt={`${material.materialName} construction material`}
-          className="h-full w-full object-cover"
+          className="h-full w-full max-w-full object-cover"
           src={images[imageIndex]}
         />
         <div className="absolute left-3 top-3 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-slate-950 shadow-sm">
@@ -111,16 +111,16 @@ export default function MaterialCard({ material, compact = false }: MaterialCard
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <a
-            className="inline-flex items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-emerald-700"
+            className="inline-flex w-full items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-emerald-700"
             href={getTelUrl(material.supplierPhoneNumber)}
           >
             <Icon path="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07A19.5 19.5 0 0 1 3.16 10.8 19.8 19.8 0 0 1 .09 2.18 2 2 0 0 1 2.06 0h3a2 2 0 0 1 2 1.72c.13 1 .36 1.96.7 2.88a2 2 0 0 1-.45 2.11L6.1 7.9a16 16 0 0 0 6 6l1.19-1.19a2 2 0 0 1 2.11-.45c.92.34 1.88.57 2.88.7A2 2 0 0 1 22 16.92Z" />
             Call
           </a>
           <a
-            className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
+            className="inline-flex w-full items-center justify-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
             href={getWhatsAppUrl(material.supplierWhatsappNumber)}
             rel="noreferrer"
             target="_blank"
@@ -129,7 +129,7 @@ export default function MaterialCard({ material, compact = false }: MaterialCard
             WhatsApp
           </a>
           <Link
-            className="inline-flex items-center justify-center rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-800 transition hover:border-cyan-500 hover:text-cyan-700"
+            className="inline-flex w-full items-center justify-center rounded-md border border-slate-300 px-3 py-2 text-sm font-bold text-slate-800 transition hover:border-cyan-500 hover:text-cyan-700"
             href={`/materials/${material.id}`}
           >
             Details

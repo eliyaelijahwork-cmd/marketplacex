@@ -3,43 +3,19 @@ import LocationButton from "./components/LocationButton";
 import MaterialCard from "./components/MaterialCard";
 import {
   categories,
-  heroImage,
   seedMaterials,
   seedSuppliers,
 } from "./data/marketplace";
 
-const trustStats = [
-  { label: "Live material categories", value: "9" },
-  { label: "Supplier-ready listings", value: "500+" },
-  { label: "Direct calls and WhatsApp", value: "24/7" },
-];
-
 export default function Home() {
   return (
     <main className="bg-slate-50">
-      <section className="relative isolate overflow-hidden border-b border-slate-200 bg-white">
-        <img
-          alt="Construction materials stocked for marketplace buyers"
-          className="absolute inset-0 h-full w-full max-w-full object-cover"
-          src={heroImage}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/40" />
-        <div className="relative mx-auto grid min-h-[480px] w-full max-w-7xl grid-cols-1 gap-8 px-4 py-8 sm:min-h-[520px] sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,0.7fr)] lg:items-center lg:px-8">
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 px-4 sm:px-6 lg:items-center lg:px-8">
           <div>
-            <p className="text-sm font-black uppercase text-cyan-700">
-              OLX-style construction material marketplace
-            </p>
-            <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-slate-950 sm:text-5xl lg:text-6xl">
-              Buy cement, steel, sand, bricks, and site supplies near you.
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-700">
-              Compare nearby suppliers, sort by distance, call directly, and let suppliers post
-              verified material stock with photos and GPS location.
-            </p>
-
             <form
               action="/materials"
-              className="mt-7 grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm sm:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)] md:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)_auto]"
+              className="grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm sm:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)] md:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)_auto]"
             >
               <input
                 className="min-w-0 px-4 py-4 text-sm text-slate-950 outline-none"
@@ -76,18 +52,6 @@ export default function Home() {
                 Post Material
               </Link>
             </div>
-          </div>
-
-          <div className="grid gap-3">
-            {trustStats.map((stat) => (
-              <div
-                className="rounded-lg border border-white/70 bg-white/90 p-5 shadow-sm backdrop-blur"
-                key={stat.label}
-              >
-                <p className="text-3xl font-black text-cyan-700">{stat.value}</p>
-                <p className="mt-1 text-sm font-bold text-slate-700">{stat.label}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>

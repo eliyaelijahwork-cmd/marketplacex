@@ -1,9 +1,11 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db, storage } from '@/lib/firebase/client';
- import {
+
+import {
   collection,
   addDoc,
   updateDoc,
@@ -11,13 +13,24 @@ import { auth, db, storage } from '@/lib/firebase/client';
   increment,
   serverTimestamp,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-const categories = ['Cement', 'Sand', 'Steel', 'Bricks', 'Granite', 'Tiles', 'Paint', 'Electrical', 'Plumbing', 'Hardware', 'Wood', 'Aggregates'];
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from 'firebase/storage';
+
+const categories = [
+  'Cement', 'Sand', 'Steel', 'Bricks',
+  'Granite', 'Tiles', 'Paint', 'Electrical',
+  'Plumbing', 'Hardware', 'Wood', 'Aggregates'
+];
 
 export default function NewProductPage() {
   const router = useRouter();
+
   const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -31,74 +44,103 @@ export default function NewProductPage() {
     state: '',
     availability: 'in_stock',
   });
-// Upload images to Firebase Storage
-const imageUrls: string[] = [];
-const imagePaths: string[] = [];
 
-for (const img of images) {
-  const filePath = `materials/${user.uid}/${Date.now()}_${img.name}`;
-  const imageRef = ref(storage, filePath);
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
-  await uploadBytes(imageRef, img);
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(e.target.files || []);
 
-  const url = await getDownloadURL(imageRef);
+    setImages(prev => [...prev, ...files]);
 
-  imageUrls.push(url);
-  imagePaths.push(filePath);
-}
+    const previews = files.map(file =>
+      URL.createObjectURL(file)
+    );
+
+    setImagePreviews(prev => [...prev, ...previews]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+
     const user = auth.currentUser;
-    if (!user) return;
+
+    if (!user) {
+      alert('Please login first');
+      return;
+    }
+
+    if (images.length === 0) {
+      alert('Please select at least one product image');
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      // Upload images to Firebase Storage
       const imageUrls: string[] = [];
+      const imagePaths: string[] = [];
+
+      // Upload images to Firebase Storage
       for (const img of images) {
-        const refPath = ref(storage, `products/${user.uid}/${Date.now()}_${img.name}`);
-        await uploadBytes(refPath, img);
-        const url = await getDownloadURL(refPath);
+        const filePath =
+          `materials/${user.uid}/${Date.now()}_${img.name}`;
+
+        const imageRef = ref(storage, filePath);
+
+        await uploadBytes(imageRef, img);
+
+        const url = await getDownloadURL(imageRef);
+
         imageUrls.push(url);
+        imagePaths.push(filePath);
       }
 
-      // Create product document in Firestore
-    const productData = {
-  ...form,
-  price: Number(form.price),
-  minOrderQty: Number(form.minOrderQty),
-  supplierId: user.uid,
-  images: imageUrls,
-  imageUrls: imageUrls,
-  imageUrl: imageUrls[0] || '',
-  imagePath: imagePaths[0] || '',
-  imagePaths: imagePaths,
-  createdAt: serverTimestamp(),
-  views: 0,
-  inquiries: 0,
-};
+      // Save product in Firestore
+      const productData = {
         ...form,
-        price: parseFloat(form.price),
-        minOrderQty: parseInt(form.minOrderQty),
+        price: Number(form.price),
+        minOrderQty: Number(form.minOrderQty),
+
         supplierId: user.uid,
+
         images: imageUrls,
-        createdAt: new Date().toISOString(),
+        imageUrls: imageUrls,
+
+        imageUrl: imageUrls[0] || '',
+        imagePath: imagePaths[0] || '',
+        imagePaths: imagePaths,
+
+        createdAt: serverTimestamp(),
+
         views: 0,
         inquiries: 0,
       };
-      await addDoc(collection(db, 'products'), productData);
 
-      // Increment supplier's product count
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        'stats.totalProducts': increment(1),
-      });
+      await addDoc(
+        collection(db, 'products'),
+        productData
+      );
+
+      // Update supplier product count
+      await updateDoc(
+        doc(db, 'users', user.uid),
+        {
+          'stats.totalProducts': increment(1),
+        }
+      );
+
+      alert('Product published successfully!');
 
       router.push('/supplier/dashboard');
+
     } catch (error) {
-      console.error(error);
-      alert('Failed to add product');
+      console.error('Product upload error:', error);
+
+      alert('Failed to publish product. Please try again.');
+
     } finally {
       setLoading(false);
     }
@@ -106,39 +148,174 @@ for (const img of images) {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Add New Product</h1>
+
+      <h1 className="text-2xl font-bold mb-6">
+        Add New Product
+      </h1>
+
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input type="text" placeholder="Product title" required
-          className="w-full p-2 border rounded" value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
-        <textarea placeholder="Description" rows={3}
-          className="w-full p-2 border rounded" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
-        <select className="w-full p-2 border rounded" value={form.category} onChange={e => setForm({...form, category: e.target.value})} required>
+
+        <input
+          type="text"
+          placeholder="Product title"
+          required
+          className="w-full p-2 border rounded"
+          value={form.title}
+          onChange={e =>
+            setForm({ ...form, title: e.target.value })
+          }
+        />
+
+        <textarea
+          placeholder="Description"
+          rows={3}
+          className="w-full p-2 border rounded"
+          value={form.description}
+          onChange={e =>
+            setForm({ ...form, description: e.target.value })
+          }
+        />
+
+        <select
+          className="w-full p-2 border rounded"
+          value={form.category}
+          onChange={e =>
+            setForm({ ...form, category: e.target.value })
+          }
+          required
+        >
           <option value="">Select Category</option>
-          {categories.map(cat => <option key={cat}>{cat}</option>)}
+
+          {categories.map(cat => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
         </select>
-        <input type="text" placeholder="Subcategory (e.g., OPC 53)" className="w-full p-2 border rounded" value={form.subcategory} onChange={e => setForm({...form, subcategory: e.target.value})} />
+
+        <input
+          type="text"
+          placeholder="Subcategory"
+          className="w-full p-2 border rounded"
+          value={form.subcategory}
+          onChange={e =>
+            setForm({ ...form, subcategory: e.target.value })
+          }
+        />
+
         <div className="flex gap-4">
-          <input type="number" placeholder="Price" required className="w-1/2 p-2 border rounded" value={form.price} onChange={e => setForm({...form, price: e.target.value})} />
-          <select className="w-1/2 p-2 border rounded" value={form.unit} onChange={e => setForm({...form, unit: e.target.value})}>
-            <option value="bag">Bag</option><option value="kg">kg</option><option value="ton">Ton</option>
-            <option value="piece">Piece</option><option value="sqft">sq.ft.</option><option value="load">Load</option>
+
+          <input
+            type="number"
+            placeholder="Price"
+            required
+            min="0"
+            className="w-1/2 p-2 border rounded"
+            value={form.price}
+            onChange={e =>
+              setForm({ ...form, price: e.target.value })
+            }
+          />
+
+          <select
+            className="w-1/2 p-2 border rounded"
+            value={form.unit}
+            onChange={e =>
+              setForm({ ...form, unit: e.target.value })
+            }
+          >
+            <option value="bag">Bag</option>
+            <option value="kg">kg</option>
+            <option value="ton">Ton</option>
+            <option value="piece">Piece</option>
+            <option value="sqft">sq.ft.</option>
+            <option value="load">Load</option>
           </select>
+
         </div>
-        <input type="text" placeholder="Location (e.g., Mumbai)" required className="w-full p-2 border rounded" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+
+        <input
+          type="number"
+          placeholder="Minimum Order Quantity"
+          min="1"
+          required
+          className="w-full p-2 border rounded"
+          value={form.minOrderQty}
+          onChange={e =>
+            setForm({ ...form, minOrderQty: e.target.value })
+          }
+        />
+
+        <input
+          type="text"
+          placeholder="Location"
+          required
+          className="w-full p-2 border rounded"
+          value={form.location}
+          onChange={e =>
+            setForm({ ...form, location: e.target.value })
+          }
+        />
+
         <div className="flex gap-4">
-          <input type="text" placeholder="City" required className="w-1/2 p-2 border rounded" value={form.city} onChange={e => setForm({...form, city: e.target.value})} />
-          <input type="text" placeholder="State" required className="w-1/2 p-2 border rounded" value={form.state} onChange={e => setForm({...form, state: e.target.value})} />
+
+          <input
+            type="text"
+            placeholder="City"
+            required
+            className="w-1/2 p-2 border rounded"
+            value={form.city}
+            onChange={e =>
+              setForm({ ...form, city: e.target.value })
+            }
+          />
+
+          <input
+            type="text"
+            placeholder="State"
+            required
+            className="w-1/2 p-2 border rounded"
+            value={form.state}
+            onChange={e =>
+              setForm({ ...form, state: e.target.value })
+            }
+          />
+
         </div>
+
         <div>
-          <label className="block text-sm font-medium">Product Images</label>
-          <input type="file" multiple accept="image/*" onChange={handleImageChange} className="mt-1" />
-          <div className="flex gap-2 mt-2">
-            {imagePreviews.map((src, idx) => <img key={idx} src={src} className="w-16 h-16 object-cover rounded" />)}
+          <label className="block text-sm font-medium">
+            Product Images
+          </label>
+
+          <input
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleImageChange}
+            className="mt-1"
+          />
+
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {imagePreviews.map((src, idx) => (
+              <img
+                key={idx}
+                src={src}
+                alt="Product preview"
+                className="w-16 h-16 object-cover rounded"
+              />
+            ))}
           </div>
         </div>
-        <button type="submit" disabled={loading} className="bg-green-700 text-white px-6 py-2 rounded-md w-full">
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-green-700 text-white px-6 py-2 rounded-md w-full"
+        >
           {loading ? 'Uploading...' : 'Publish Product'}
         </button>
+
       </form>
     </div>
   );

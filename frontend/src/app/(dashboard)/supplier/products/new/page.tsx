@@ -31,15 +31,21 @@ export default function NewProductPage() {
     state: '',
     availability: 'in_stock',
   });
-  const [images, setImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+// Upload images to Firebase Storage
+const imageUrls: string[] = [];
+const imagePaths: string[] = [];
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setImages(prev => [...prev, ...files]);
-    const previews = files.map(file => URL.createObjectURL(file));
-    setImagePreviews(prev => [...prev, ...previews]);
-  };
+for (const img of images) {
+  const filePath = `materials/${user.uid}/${Date.now()}_${img.name}`;
+  const imageRef = ref(storage, filePath);
+
+  await uploadBytes(imageRef, img);
+
+  const url = await getDownloadURL(imageRef);
+
+  imageUrls.push(url);
+  imagePaths.push(filePath);
+}
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +64,20 @@ export default function NewProductPage() {
       }
 
       // Create product document in Firestore
-      const productData = {
+    const productData = {
+  ...form,
+  price: Number(form.price),
+  minOrderQty: Number(form.minOrderQty),
+  supplierId: user.uid,
+  images: imageUrls,
+  imageUrls: imageUrls,
+  imageUrl: imageUrls[0] || '',
+  imagePath: imagePaths[0] || '',
+  imagePaths: imagePaths,
+  createdAt: serverTimestamp(),
+  views: 0,
+  inquiries: 0,
+};
         ...form,
         price: parseFloat(form.price),
         minOrderQty: parseInt(form.minOrderQty),

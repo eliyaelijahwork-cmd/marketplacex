@@ -1,7 +1,7 @@
 
 import { auth } from "@/lib/firebase";
 
-const ADMIN_EMAIL = "YOUR_ADMIN_GMAIL@gmail.com";
+const ADMIN_EMAIL = "eliyaelijahwork@gmail.com";
 
 export async function isAdminUser() {
   const user = auth.currentUser;

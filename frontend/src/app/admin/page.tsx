@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
-const ADMIN_EMAIL = "YOUR_ADMIN_GMAIL@gmail.com";
+const ADMIN_EMAIL = "eliyaelijahwork@gmail.com";
 
 export default function AdminPage() {
   const router = useRouter();

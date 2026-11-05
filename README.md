@@ -1,6 +1,6 @@
 # MarketPlaceX
 
-Construction Material MarketPlaceX is an OLX-style marketplace for construction materials built with Next.js 16, React 19, TypeScript, Tailwind CSS, Firebase Authentication, Cloud Firestore, and Firebase Storage.
+Construction Material MarketPlaceX is an  marketplace for construction materials built with Next.js 16, React 19, TypeScript, Tailwind CSS, Firebase Authentication, Cloud Firestore, and Firebase Storage.
 
 ## Main Routes
 

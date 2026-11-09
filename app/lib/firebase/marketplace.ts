@@ -1,29 +1,19 @@
 "use client";
 
 import type { User } from "firebase/auth";
+import { getFirebaseAuth } from "./client";
 import {
   collection,
-  deleteDoc,
   doc,
   getDoc,
-  getDocs,
   onSnapshot,
-  query,
   serverTimestamp,
   setDoc,
   updateDoc,
-  where,
   type DocumentData,
   type Unsubscribe,
 } from "firebase/firestore";
 import {
-  deleteObject,
-  getDownloadURL,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
-import {
-  defaultMaterialImage,
   createDuplicateKey,
   seedMaterials,
   seedSuppliers,
@@ -33,7 +23,6 @@ import {
 } from "@/app/data/marketplace";
 import {
   getFirebaseDb,
-  getFirebaseStorage,
   firebaseConfigMissing,
 } from "./client";
 
@@ -94,7 +83,16 @@ export function validateImageFiles(files: File[]) {
 }
 
 export function isVerifiedSupplier(profile?: SupplierProfile | null) {
-  return Boolean(profile?.isVerified && profile.verificationStatus === "verified");
+  if (!profile) return false;
+  if (profile.supplierStatus === "suspended" || profile.supplierStatus === "rejected" ||
+      profile.accountStatus === "suspended" || profile.accountStatus === "rejected" ||
+      profile.approvalStatus === "suspended" || profile.approvalStatus === "rejected" ||
+      profile.verificationStatus === "rejected" || profile.isSuspended || profile.isActive === false) return false;
+  if (profile.supplierApproved === true && profile.accountStatus === "active") return true;
+  if (profile.accountStatus !== undefined || profile.supplierStatus !== undefined || profile.canPostMaterials !== undefined) {
+    return profile.verificationStatus === "approved" && (profile.supplierStatus === "active" || profile.accountStatus === "active") && profile.canPostMaterials === true;
+  }
+  return profile.isVerified && profile.verificationStatus === "verified";
 }
 
 export function listenToMaterials(
@@ -151,47 +149,16 @@ export function listenToUserProfile(
 }
 
 export async function ensureUserProfile(user: User) {
-  if (firebaseConfigMissing) {
-    return;
-  }
-
-  const db = getFirebaseDb();
-  const profileRef = doc(db, "users", user.uid);
-  const current = await getDoc(profileRef);
-
-  if (current.exists()) {
-    await updateDoc(profileRef, {
-      email: user.email ?? current.data().email ?? "",
-      phoneNumber: user.phoneNumber ?? current.data().phoneNumber ?? "",
-      isVerified: current.data().isVerified ?? false,
-      verificationStatus: current.data().verificationStatus ?? "pending",
-      rating: current.data().rating ?? 0,
-      reviewCount: current.data().reviewCount ?? 0,
-      updatedAt: serverTimestamp(),
-    });
-    return;
-  }
-
-  await setDoc(profileRef, {
-    uid: user.uid,
-    supplierName: user.displayName ?? "",
-    companyName: user.displayName ?? "",
-    email: user.email ?? "",
-    phoneNumber: user.phoneNumber ?? "",
-    whatsappNumber: user.phoneNumber ?? "",
-    profilePhoto: user.photoURL ?? "",
-    address: "",
-    city: "",
-    state: "",
-    latitude: 0,
-    longitude: 0,
-    description: "",
-    isVerified: false,
-    verificationStatus: "pending",
-    rating: 0,
-    reviewCount: 0,
-    createdAt: serverTimestamp(),
+  if (firebaseConfigMissing) return;
+  const token = await user.getIdToken();
+  const response = await fetch("/api/suppliers/profile", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
   });
+  if (!response.ok) {
+    const result = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(result?.error ?? "Could not sync supplier profile.");
+  }
 }
 
 export async function saveSupplierProfile(
@@ -221,6 +188,8 @@ export async function saveSupplierProfile(
     address: input.address,
     city: input.city,
     state: input.state,
+        businessCategory: input.businessCategory ?? "",
+    pinCode: input.pinCode ?? "",
     latitude: input.latitude,
     longitude: input.longitude,
     description: input.description,
@@ -257,7 +226,6 @@ export async function createMaterialListing(
     throw new Error(validationMessage);
   }
 
-  const db = getFirebaseDb();
   const duplicateKey = createDuplicateKey({
     supplierId: supplier.uid,
     materialName: input.materialName,
@@ -265,23 +233,11 @@ export async function createMaterialListing(
     city: input.city,
   });
   const materialId = `${supplier.uid}-${slugify(duplicateKey)}`.slice(0, 120);
-  const materialRef = doc(db, "materials", materialId);
-  await assertNoDuplicateListing(supplier.uid, duplicateKey);
   const images = files.length
-    ? await uploadFiles(files, `materials/${supplier.uid}/${materialRef.id}`, onProgress)
+    ? await uploadFiles(files, `materials/${supplier.uid}/${materialId}`, onProgress)
     : [];
-
-  await setDoc(materialRef, {
-    id: materialRef.id,
-    supplierId: supplier.uid,
-    supplierName: supplier.supplierName || supplier.companyName,
-    supplierCompanyName: supplier.companyName,
-    supplierPhoneNumber: supplier.phoneNumber,
-    supplierWhatsappNumber: supplier.whatsappNumber,
-    supplierPhoto: supplier.profilePhoto,
-    supplierVerified: true,
-    supplierRating: supplier.rating,
-    duplicateKey,
+  await authorizedMaterialRequest("POST", {
+    id: materialId,
     materialName: input.materialName,
     category: input.category,
     price: input.price,
@@ -294,11 +250,10 @@ export async function createMaterialListing(
     state: input.state,
     latitude: input.latitude,
     longitude: input.longitude,
-    createdAt: serverTimestamp(),
   });
 
   onProgress?.(100);
-  return materialRef.id;
+  return materialId;
 }
 
 export async function updateMaterialListing(
@@ -323,23 +278,8 @@ export async function updateMaterialListing(
   const newImages = files.length
     ? await uploadFiles(files, `materials/${supplier.uid}/${material.id}`, onProgress)
     : material.images;
-  const duplicateKey = createDuplicateKey({
-    supplierId: supplier.uid,
-    materialName: input.materialName,
-    category: input.category,
-    city: input.city,
-  });
-  await assertNoDuplicateListing(supplier.uid, duplicateKey, material.id);
-
-  await updateDoc(doc(getFirebaseDb(), "materials", material.id), {
-    supplierName: supplier.supplierName || supplier.companyName,
-    supplierCompanyName: supplier.companyName,
-    supplierPhoneNumber: supplier.phoneNumber,
-    supplierWhatsappNumber: supplier.whatsappNumber,
-    supplierPhoto: supplier.profilePhoto,
-    supplierVerified: true,
-    supplierRating: supplier.rating,
-    duplicateKey,
+  await authorizedMaterialRequest("PATCH", {
+    id: material.id,
     materialName: input.materialName,
     category: input.category,
     price: input.price,
@@ -352,33 +292,9 @@ export async function updateMaterialListing(
     state: input.state,
     latitude: input.latitude,
     longitude: input.longitude,
-    updatedAt: serverTimestamp(),
   });
 
   onProgress?.(100);
-}
-
-async function assertNoDuplicateListing(
-  supplierId: string,
-  duplicateKey: string,
-  currentMaterialId?: string,
-) {
-  const duplicateSnapshot = await getDocs(
-    query(
-      collection(getFirebaseDb(), "materials"),
-      where("supplierId", "==", supplierId),
-      where("duplicateKey", "==", duplicateKey),
-    ),
-  );
-  const duplicate = duplicateSnapshot.docs.find(
-    (document) => document.id !== currentMaterialId,
-  );
-
-  if (duplicate) {
-    throw new Error(
-      "This looks like a duplicate listing. Update the existing material instead.",
-    );
-  }
 }
 
 export async function deleteMaterialListing(material: MaterialListing) {
@@ -386,12 +302,22 @@ export async function deleteMaterialListing(material: MaterialListing) {
     throw new Error("Firebase is not configured. Add root .env.local values first.");
   }
 
-  await Promise.allSettled(
-    material.images
-      .filter((image) => image && image !== defaultMaterialImage && image.startsWith("http"))
-      .map((image) => deleteObject(ref(getFirebaseStorage(), image))),
-  );
-  await deleteDoc(doc(getFirebaseDb(), "materials", material.id));
+  await authorizedMaterialRequest("DELETE", { id: material.id });
+}
+
+async function authorizedMaterialRequest(method: "POST" | "PATCH" | "DELETE", body: Record<string, unknown>) {
+  const user = getFirebaseAuth().currentUser;
+  if (!user) throw new Error("Sign in again to manage material listings.");
+  const token = await user.getIdToken();
+  const response = await fetch("/api/materials", {
+    method,
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const result = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(result?.error ?? "Could not save the material listing.");
+  }
 }
 
 async function uploadFiles(
@@ -422,21 +348,21 @@ async function uploadFile(
   path: string,
   onProgress?: (progress: number) => void,
 ) {
-  const task = uploadBytesResumable(ref(getFirebaseStorage(), path), file, {
-    contentType: file.type,
+  const user = getFirebaseAuth().currentUser;
+  if (!user) throw new Error("Sign in again before uploading files.");
+  onProgress?.(0);
+  const form = new FormData();
+  form.set("path", path);
+  form.set("file", file);
+  const response = await fetch("/api/suppliers/file-upload", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${await user.getIdToken()}` },
+    body: form,
   });
-
-  return new Promise<string>((resolve, reject) => {
-    task.on(
-      "state_changed",
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        onProgress?.(Math.round(progress));
-      },
-      reject,
-      async () => resolve(await getDownloadURL(task.snapshot.ref)),
-    );
-  });
+  const result = await response.json().catch(() => null) as { url?: string; error?: string } | null;
+  if (!response.ok || !result?.url) throw new Error(result?.error ?? "Could not upload the file.");
+  onProgress?.(100);
+  return result.url;
 }
 
 function sanitizeFileName(value: string) {
@@ -460,6 +386,21 @@ function profileFromDoc(id: string, data: DocumentData): SupplierProfile {
     description: stringValue(data.description),
     isVerified: booleanValue(data.isVerified),
     verificationStatus: verificationStatusValue(data.verificationStatus),
+    accountStatus: typeof data.accountStatus === "string" ? data.accountStatus as SupplierProfile["accountStatus"] : undefined,
+    paymentStatus: typeof data.paymentStatus === "string" ? data.paymentStatus as SupplierProfile["paymentStatus"] : undefined,
+    authenticationVerified: typeof data.authenticationVerified === "boolean" ? data.authenticationVerified : undefined,
+    googleAuthenticated: typeof data.googleAuthenticated === "boolean" ? data.googleAuthenticated : undefined,
+    emailVerified: typeof data.emailVerified === "boolean" ? data.emailVerified : undefined,
+    phoneVerified: typeof data.phoneVerified === "boolean" ? data.phoneVerified : undefined,
+    supplierApproved: typeof data.supplierApproved === "boolean" ? data.supplierApproved : undefined,
+    paymentRequired: typeof data.paymentRequired === "boolean" ? data.paymentRequired : undefined,
+    canPostMaterials: typeof data.canPostMaterials === "boolean" ? data.canPostMaterials : undefined,
+    supplierStatus: typeof data.supplierStatus === "string" ? data.supplierStatus as SupplierProfile["supplierStatus"] : undefined,
+    approvalStatus: typeof data.approvalStatus === "string" ? data.approvalStatus as SupplierProfile["approvalStatus"] : undefined,
+    isSuspended: typeof data.isSuspended === "boolean" ? data.isSuspended : undefined,
+    isActive: typeof data.isActive === "boolean" ? data.isActive : undefined,
+    businessCategory: stringValue(data.businessCategory),
+    pinCode: stringValue(data.pinCode),
     verifiedAt: timestampToIso(data.verifiedAt),
     rating: numberValue(data.rating),
     reviewCount: numberValue(data.reviewCount),
@@ -523,7 +464,7 @@ function booleanValue(value: unknown, fallback = false) {
 }
 
 function verificationStatusValue(value: unknown): SupplierProfile["verificationStatus"] {
-  return value === "verified" || value === "rejected" || value === "pending"
+  return value === "verified" || value === "approved" || value === "pending_payment" || value === "rejected" || value === "pending"
     ? value
     : "pending";
 }
@@ -531,3 +472,8 @@ function verificationStatusValue(value: unknown): SupplierProfile["verificationS
 function byNewest(a: MaterialListing, b: MaterialListing) {
   return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
 }
+
+
+
+
+

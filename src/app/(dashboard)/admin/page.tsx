@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase/client';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
@@ -24,11 +24,7 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const usersSnap = await getDocs(collection(db, 'users'));
       const suppliersSnap = await getDocs(query(collection(db, 'users'), where('role', '==', 'supplier')));
@@ -50,7 +46,12 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void fetchStats(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [fetchStats]);
 
   if (loading) return <div>Loading stats...</div>;
 

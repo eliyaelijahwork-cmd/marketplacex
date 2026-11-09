@@ -6,15 +6,17 @@ import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, profile, profileLoading, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+    } else if (!loading && user && !profileLoading && !profile) {
+      router.replace("/signup");
     }
-  }, [loading, pathname, router, user]);
+  }, [loading, pathname, profile, profileLoading, router, user]);
 
   if (loading) {
     return (
@@ -49,3 +51,5 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
+

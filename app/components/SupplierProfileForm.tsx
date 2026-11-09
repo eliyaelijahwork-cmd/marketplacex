@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
+import { categories } from "@/app/data/marketplace";
+import { mainCategories } from "@/app/data/directory";
 import { useLocation } from "@/app/contexts/LocationContext";
 import {
   allowedImageTypes,
@@ -21,6 +23,8 @@ type ProfileFormState = {
   address: string;
   city: string;
   state: string;
+    businessCategory: string;
+  pinCode: string;
   latitude: string;
   longitude: string;
   description: string;
@@ -62,6 +66,8 @@ export default function SupplierProfileForm() {
         address: profile.address,
         city: profile.city,
         state: profile.state,
+                businessCategory: profile.businessCategory ?? "",
+        pinCode: profile.pinCode ?? "",
         latitude: String(profile.latitude || ""),
         longitude: String(profile.longitude || ""),
         description: profile.description,
@@ -140,6 +146,8 @@ export default function SupplierProfileForm() {
           address: form.address.trim(),
           city: form.city.trim(),
           state: form.state.trim(),
+                    businessCategory: form.businessCategory,
+          pinCode: form.pinCode.trim(),
           latitude: Number(form.latitude),
           longitude: Number(form.longitude),
           description: form.description.trim(),
@@ -214,6 +222,8 @@ export default function SupplierProfileForm() {
         <Field label="WhatsApp Number" name="whatsappNumber" onChange={updateField} required type="tel" value={form.whatsappNumber} />
         <Field label="City" name="city" onChange={updateField} required value={form.city} />
         <Field label="State" name="state" onChange={updateField} required value={form.state} />
+        <Field label="PIN code" name="pinCode" onChange={updateField} required value={form.pinCode} />
+        <label className="grid gap-2 text-sm font-bold text-slate-700">Business category<select className={inputClass} required value={form.businessCategory} onChange={(event) => updateField("businessCategory", event.target.value)}><option value="">Choose a category</option>{mainCategories.map((category) => <option key={category.slug} value={category.slug}>{category.name}</option>)}<optgroup label="Legacy material categories">{categories.map((category) => <option key={category.slug} value={category.slug}>{category.name}</option>)}</optgroup></select></label>
         <Field label="Latitude" name="latitude" onChange={updateField} required type="number" value={form.latitude} />
         <Field label="Longitude" name="longitude" onChange={updateField} required type="number" value={form.longitude} />
         <label className="grid gap-2 text-sm font-bold text-slate-700 md:col-span-2">
@@ -313,9 +323,13 @@ function emptyForm(): ProfileFormState {
     address: "",
     city: "",
     state: "",
+        businessCategory: "",
+    pinCode: "",
     latitude: "",
     longitude: "",
     description: "",
     profilePhoto: "",
   };
 }
+
+

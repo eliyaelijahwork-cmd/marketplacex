@@ -17,25 +17,32 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") ?? "/supplier-dashboard";
-  const { user, loading, error, firebaseReady, loginWithGoogle, sendOtp, verifyOtp, clearError } =
+  const { user, profile, profileLoading, loading, error, firebaseReady, loginWithGoogle, sendOtp, verifyOtp, clearError } =
     useAuth();
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [resendSeconds, setResendSeconds] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && !profileLoading && user && profile) {
       router.replace(redirectTo);
     }
-  }, [loading, redirectTo, router, user]);
+  }, [loading, profile, profileLoading, redirectTo, router, user]);
+
+  useEffect(() => {
+    if (resendSeconds < 1) return;
+    const timer = window.setTimeout(() => setResendSeconds((seconds) => Math.max(0, seconds - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendSeconds]);
 
   async function handleGoogleLogin() {
     setSubmitting(true);
     setStatus("");
-    await loginWithGoogle();
-    setSubmitting(false);
+    try { await loginWithGoogle(); }
+    finally { setSubmitting(false); }
   }
 
   async function handleOtpRequest(event: FormEvent<HTMLFormElement>) {
@@ -43,18 +50,20 @@ export default function AuthForm({ mode }: AuthFormProps) {
     clearError();
     setSubmitting(true);
     setStatus("");
-    await sendOtp(phoneNumber);
-    setOtpSent(true);
-    setStatus("OTP sent. Enter the verification code to continue.");
-    setSubmitting(false);
+    try {
+      const sent = await sendOtp(phoneNumber);
+      setOtpSent(sent);
+      if (sent) setResendSeconds(60);
+      if (sent) setStatus("OTP sent. Enter the verification code to continue.");
+    } finally { setSubmitting(false); }
   }
 
   async function handleOtpVerify(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     clearError();
     setSubmitting(true);
-    await verifyOtp(otp);
-    setSubmitting(false);
+    try { await verifyOtp(otp); }
+    finally { setSubmitting(false); }
   }
 
   return (
@@ -126,10 +135,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
             </label>
             <button
               className="w-full rounded-md bg-cyan-700 px-5 py-3 font-bold text-white transition hover:bg-cyan-800 disabled:cursor-wait disabled:opacity-70 md:w-auto"
-              disabled={submitting || !firebaseReady}
+              disabled={submitting || !firebaseReady || (otpSent && resendSeconds > 0)}
               type="submit"
             >
-              {otpSent ? "Send OTP again" : "Send OTP"}
+              {otpSent ? resendSeconds > 0 ? `Resend OTP in ${resendSeconds}s` : "Resend OTP" : "Send OTP"}
             </button>
           </form>
 

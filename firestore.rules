@@ -37,8 +37,21 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function settingEnabled(name, defaultValue) {
+      return exists(/databases/$(database)/documents/settings/approval)
+        ? get(/databases/$(database)/documents/settings/approval).data[name] == true
+        : defaultValue;
+    }
+
+    function verificationRequirementsMet() {
+      return (!settingEnabled('requireVerifiedEmail', true) || request.auth.token.email_verified == true) &&
+        (!settingEnabled('requireVerifiedPhone', false) || request.auth.token.phone_number is string);
+    }
+
     function isVerifier() {
-      return signedIn() && request.auth.token.admin == true;
+      return signedIn() &&
+        request.auth.token.email == 'eliyaelijahwork@gmail.com' &&
+        request.auth.token.email_verified == true;
     }
 
     function isString(value, min, max) {
@@ -71,7 +84,7 @@ service cloud.firestore {
     }
 
     function isVerificationStatus(value) {
-      return value == 'pending' || value == 'verified' || value == 'rejected';
+      return value == 'pending' || value == 'pending_payment' || value == 'verified' || value == 'approved' || value == 'rejected';
     }
 
     function isMessageType(value) {
@@ -89,7 +102,44 @@ service cloud.firestore {
     function isVerifiedSupplier(userId) {
       return exists(/databases/$(database)/documents/users/$(userId)) &&
         supplierDoc(userId).data.isVerified == true &&
-        supplierDoc(userId).data.verificationStatus == 'verified';
+        supplierDoc(userId).data.verificationStatus in ['verified', 'approved'] &&
+        supplierDoc(userId).data.get('approvalStatus', 'approved') == 'approved' &&
+        supplierDoc(userId).data.get('supplierStatus', 'active') == 'active' &&
+        supplierDoc(userId).data.get('accountStatus', 'active') == 'active' &&
+        supplierDoc(userId).data.get('isSuspended', false) == false &&
+        supplierDoc(userId).data.get('isActive', true) == true &&
+        supplierDoc(userId).data.get('canPostMaterials', true) == true;
+    }
+
+    function validProduct(data, isCreate) {
+      return data.keys().hasOnly([
+          'title', 'name', 'category', 'subcategory', 'price', 'unit', 'minOrderQty',
+          'description', 'location', 'city', 'state', 'availability', 'supplierId',
+          'images', 'imageUrls', 'imageUrl', 'imagePath', 'imagePaths', 'createdAt',
+          'updatedAt', 'views', 'inquiries', 'approvalStatus', 'isApproved',
+          'isSuspended', 'isActive'
+        ]) &&
+        data.supplierId is string && data.supplierId == request.auth.uid &&
+        data.title is string && data.title.size() >= 2 && data.title.size() <= 160 &&
+        data.category is string && data.category.size() >= 2 && data.category.size() <= 80 &&
+        data.price is number && data.price > 0 && data.price <= 100000000 &&
+        data.description is string && data.description.size() > 0 && data.description.size() <= 3000 &&
+        data.unit is string && data.unit.size() > 0 && data.unit.size() <= 40 &&
+        (!data.keys().hasAny(['name']) || isOptionalString(data.name, 160)) &&
+        (!data.keys().hasAny(['subcategory']) || isOptionalString(data.subcategory, 80)) &&
+        (!data.keys().hasAny(['location']) || isOptionalString(data.location, 160)) &&
+        (!data.keys().hasAny(['city']) || isOptionalString(data.city, 120)) &&
+        (!data.keys().hasAny(['state']) || isOptionalString(data.state, 120)) &&
+        (!data.keys().hasAny(['availability']) || data.availability in ['in_stock', 'out_of_stock', 'pre_order']) &&
+        ((data.images is list && data.images.size() > 0 && data.images.size() <= 10) ||
+          (data.imageUrl is string && data.imageUrl.size() > 0 && data.imageUrl.size() <= 2048)) &&
+        (!data.keys().hasAny(['imageUrls']) || (data.imageUrls is list && data.imageUrls.size() <= 10)) &&
+        (!data.keys().hasAny(['imagePaths']) || (data.imagePaths is list && data.imagePaths.size() <= 10)) &&
+        (!data.keys().hasAny(['minOrderQty']) || (data.minOrderQty is number && data.minOrderQty >= 1)) &&
+        (!data.keys().hasAny(['views']) || (data.views is int && data.views >= 0 && data.views <= 1000000000)) &&
+        (!data.keys().hasAny(['inquiries']) || (data.inquiries is int && data.inquiries >= 0 && data.inquiries <= 1000000000)) &&
+        (!data.keys().hasAny(['updatedAt']) || data.updatedAt == request.time) &&
+        (isCreate ? data.createdAt == request.time : data.createdAt == resource.data.createdAt);
     }
 
     function validTimestampFields(data, isCreate) {
@@ -108,6 +158,7 @@ service cloud.firestore {
       return data.keys().hasOnly([
           'uid',
           'userId',
+          'role',
           'name',
           'profileImage',
           'phone',
@@ -128,6 +179,17 @@ service cloud.firestore {
           'description',
           'isVerified',
           'verificationStatus',
+          'approvalStatus',
+          'supplierStatus',
+          'accountStatus',
+          'paymentStatus',
+          'canPostMaterials',
+          'businessCategory',
+          'pinCode',
+          'isApproved',
+          'isSuspended',
+          'isActive',
+          'isBlocked',
           'verifiedAt',
           'rating',
           'reviewCount',
@@ -155,6 +217,11 @@ service cloud.firestore {
           'createdAt'
         ]) &&
         isString(data.uid, 1, 128) &&
+        (!data.keys().hasAny(['role']) || data.role in ['customer', 'supplier']) &&
+        (data.get('role', 'supplier') != 'supplier' ||
+          (isString(data.supplierName, 2, 120) && isString(data.companyName, 2, 160) &&
+            isString(data.phoneNumber, 6, 24) && isString(data.address, 4, 500) &&
+            isString(data.city, 2, 120) && isString(data.state, 2, 120))) &&
         (!data.keys().hasAny(['userId']) || isString(data.userId, 1, 128)) &&
         isOptionalString(data.name, 120) &&
         isOptionalString(data.profileImage, 2048) &&
@@ -174,6 +241,11 @@ service cloud.firestore {
         isCoordinate(data.latitude, data.longitude) &&
         data.isVerified is bool &&
         isVerificationStatus(data.verificationStatus) &&
+        (!data.keys().hasAny(['approvalStatus']) || data.approvalStatus in ['pending', 'approved', 'rejected', 'suspended']) &&
+        isOptionalBool(data.isApproved) &&
+        isOptionalBool(data.isSuspended) &&
+        isOptionalBool(data.isActive) &&
+        isOptionalBool(data.isBlocked) &&
         (!data.keys().hasAny(['verifiedAt']) || data.verifiedAt is timestamp) &&
         isRating(data.rating) &&
         data.reviewCount is int &&
@@ -185,13 +257,19 @@ service cloud.firestore {
     function userCreateVerificationIsPending(data) {
       return data.isVerified == false &&
         data.verificationStatus == 'pending' &&
+        data.email == request.auth.token.email &&
+        (!settingEnabled('requireVerifiedPhone', false) || data.phoneNumber == request.auth.token.phone_number) &&
         data.rating == 0 &&
         data.reviewCount == 0 &&
-        !data.keys().hasAny(['verifiedAt']);
+        !data.keys().hasAny(['verifiedAt']) &&
+        data.approvalStatus == ((data.get('role', 'supplier') != 'supplier' || (settingEnabled('autoApproveSuppliers', false) && verificationRequirementsMet())) ? 'approved' : 'pending') &&
+        data.isApproved == (data.get('role', 'supplier') != 'supplier' || (settingEnabled('autoApproveSuppliers', false) && verificationRequirementsMet())) &&
+        data.isSuspended == false && data.isActive == true;
     }
 
     function verificationFieldsUnchanged() {
       return request.resource.data.isVerified == resource.data.isVerified &&
+        request.resource.data.get('role', '') == resource.data.get('role', '') &&
         request.resource.data.verificationStatus == resource.data.verificationStatus &&
         request.resource.data.rating == resource.data.rating &&
         request.resource.data.reviewCount == resource.data.reviewCount &&
@@ -200,6 +278,14 @@ service cloud.firestore {
             !resource.data.keys().hasAny(['verifiedAt'])) ||
           request.resource.data.verifiedAt == resource.data.verifiedAt
         );
+    }
+
+    function approvalFieldsUnchanged() {
+      return request.resource.data.get('approvalStatus', 'pending') == resource.data.get('approvalStatus', 'pending') &&
+        request.resource.data.get('isApproved', false) == resource.data.get('isApproved', false) &&
+        request.resource.data.get('isSuspended', false) == resource.data.get('isSuspended', false) &&
+        request.resource.data.get('isActive', true) == resource.data.get('isActive', true) &&
+        request.resource.data.get('isBlocked', false) == resource.data.get('isBlocked', false);
     }
 
     function validMaterial(data, isCreate) {
@@ -491,19 +577,25 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if signedIn() || resource.data.isVerified == true;
-      allow create: if signedIn() &&
-        userId == request.auth.uid &&
-        validUserIdentity(request.resource.data, userId) &&
-        userCreateVerificationIsPending(request.resource.data) &&
-        validUser(request.resource.data, true);
+      // User documents contain private contact and verification data. Admin
+      // screens use the Admin SDK API; regular clients may only read themselves.
+      allow get: if isVerifier() || (signedIn() && userId == request.auth.uid);
+      allow list: if isVerifier();
+      // Authenticated supplier provisioning and status transitions are handled
+      // by Admin SDK route handlers. Clients can edit profile/contact fields only.
+      allow create: if false;
       allow update: if signedIn() &&
         userId == request.auth.uid &&
-        validUserIdentity(request.resource.data, userId) &&
         resource.data.uid == request.auth.uid &&
-        request.resource.data.createdAt == resource.data.createdAt &&
-        verificationFieldsUnchanged() &&
-        validUser(request.resource.data, false);
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'supplierName', 'companyName', 'email', 'phoneNumber', 'whatsappNumber',
+          'profilePhoto', 'address', 'city', 'state', 'latitude', 'longitude',
+          'description', 'businessCategory', 'pinCode', 'name', 'profileImage',
+          'phone', 'isOnline', 'lastSeen', 'fcmTokens', 'updatedAt'
+        ]) &&
+        request.resource.data.get('uid', resource.data.uid) == resource.data.uid &&
+        request.resource.data.get('createdAt', resource.data.createdAt) == resource.data.createdAt &&
+        request.resource.data.updatedAt == request.time;
       allow update: if isVerifier() &&
         request.resource.data.uid == resource.data.uid &&
         (!request.resource.data.keys().hasAny(['userId']) ||
@@ -521,25 +613,47 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /products/{productId} {
+      function ownsProduct() {
+        return signedIn() && resource.data.supplierId == request.auth.uid;
+      }
+      function approvedAndActive(data) {
+        return (data.approvalStatus == 'approved' || data.isApproved == true) &&
+          data.isSuspended != true && data.isActive != false;
+      }
+      allow get, list: if isVerifier() || ownsProduct() || approvedAndActive(resource.data);
+      // Creation and approval are validated by the server API. Admin SDK
+      // writes bypass these rules; regular clients cannot self-approve.
+      allow create: if false;
+      allow update: if isVerifier() &&
+        request.resource.data.supplierId == resource.data.supplierId;
+      allow update: if false;
+      allow delete: if isVerifier() || ownsProduct();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if resource.data.enabled != false;
+      allow write: if isVerifier();
+    }
+
+    match /settings/{settingId} {
+      allow read: if signedIn() || isVerifier();
+      allow write: if isVerifier();
+    }
+
+    match /adminActivityLogs/{logId} {
+      allow read: if isVerifier();
+      allow write: if false;
+    }
+
     match /materials/{materialId} {
-      allow read: if true;
-      allow create: if signedIn() &&
-        request.resource.data.id == materialId &&
-        request.resource.data.supplierId == request.auth.uid &&
-        isVerifiedSupplier(request.auth.uid) &&
-        request.resource.data.supplierVerified == true &&
-        request.resource.data.supplierRating == supplierDoc(request.auth.uid).data.rating &&
-        validMaterial(request.resource.data, true);
-      allow update: if signedIn() &&
-        resource.data.supplierId == request.auth.uid &&
-        isVerifiedSupplier(request.auth.uid) &&
-        request.resource.data.id == resource.data.id &&
-        request.resource.data.supplierId == resource.data.supplierId &&
-        request.resource.data.createdAt == resource.data.createdAt &&
-        request.resource.data.supplierVerified == true &&
-        request.resource.data.supplierRating == supplierDoc(request.auth.uid).data.rating &&
-        validMaterial(request.resource.data, false);
-      allow delete: if signedIn() && resource.data.supplierId == request.auth.uid;
+      allow read: if isVerifier() ||
+        (signedIn() && resource.data.supplierId == request.auth.uid) ||
+        ((resource.data.approvalStatus == 'approved' || resource.data.isApproved == true) &&
+          resource.data.isSuspended != true && resource.data.isActive == true);
+      // Material writes go through authenticated Admin SDK APIs, which re-check
+      // the supplier's current status on every create and edit.
+      allow create, update, delete: if false;
     }
 
     match /chats/{chatId} {

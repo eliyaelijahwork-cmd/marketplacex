@@ -14,12 +14,14 @@ import { deleteMaterialListing, isVerifiedSupplier } from "@/app/lib/firebase/ma
 import MaterialForm from "./MaterialForm";
 import ProtectedRoute from "./ProtectedRoute";
 import SupplierProfileForm from "./SupplierProfileForm";
+import BusinessManagementPanel from "./BusinessManagementPanel";
 
 const tabs = [
   { id: "profile", label: "My Profile" },
   { id: "listings", label: "My Listings" },
   { id: "add", label: "Add Listing" },
   { id: "analytics", label: "Analytics" },
+  { id: "business", label: "Business tools" },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
@@ -86,8 +88,7 @@ function DashboardContent() {
               Manage profile, listings, and buyer reach.
             </h1>
             <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-              Only verified suppliers can post materials. Listing owners can manage their own
-              verified stock.
+              Your supplier account is automatically activated after authentication. Complete your profile and publish listings directly.
             </p>
           </div>
           <Link
@@ -117,12 +118,6 @@ function DashboardContent() {
           />
         </div>
 
-        {!verifiedSupplier && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
-            Your profile can be saved now, but posting is locked until MarketPlaceX verifies the
-            supplier. This prevents fake or duplicate marketplace listings.
-          </div>
-        )}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
           <div className="grid gap-3">
@@ -161,6 +156,7 @@ function DashboardContent() {
 
           <div className="min-w-0">
             {activeTab === "profile" && <SupplierProfileForm />}
+            {activeTab === "business" && <BusinessManagementPanel />}
 
             {activeTab === "add" && (
               <section className="grid gap-4">
@@ -237,7 +233,7 @@ function DashboardContent() {
                       >
                         <p className="font-black text-slate-950">{getCategoryName(item.category)}</p>
                         <p className="text-sm font-bold text-cyan-700">
-                          {item.count} listings · {formatCurrency(item.value)}
+                          {item.count} listings Â· {formatCurrency(item.value)}
                         </p>
                       </div>
                     ))}
@@ -266,10 +262,9 @@ function DashboardContent() {
 function VerificationLocked() {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm">
-      <h2 className="text-2xl font-black text-slate-950">Verification required</h2>
+      <h2 className="text-2xl font-black text-slate-950">Account access unavailable</h2>
       <p className="mt-3 text-slate-600">
-        Only verified suppliers can create or edit material listings. Complete your profile and
-        wait for verification before posting.
+        This account is currently restricted. Contact MarketPlaceX support if you believe this is an error.
       </p>
     </div>
   );

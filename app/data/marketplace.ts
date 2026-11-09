@@ -25,7 +25,22 @@ export type SupplierProfile = Coordinates & {
   state: string;
   description: string;
   isVerified: boolean;
-  verificationStatus: "pending" | "verified" | "rejected";
+  verificationStatus: "pending" | "pending_payment" | "verified" | "approved" | "rejected";
+  accountStatus?: "pending_payment" | "active" | "suspended" | "rejected";
+  paymentStatus?: "pending" | "success" | "failed";
+  canPostMaterials?: boolean;
+  authenticationVerified?: boolean;
+  googleAuthenticated?: boolean;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
+  supplierApproved?: boolean;
+  paymentRequired?: boolean;
+  supplierStatus?: "pending" | "active" | "suspended" | "rejected";
+  approvalStatus?: "pending" | "approved" | "suspended" | "rejected";
+  isSuspended?: boolean;
+  isActive?: boolean;
+  businessCategory?: string;
+  pinCode?: string;
   verifiedAt?: string;
   rating: number;
   reviewCount: number;
@@ -676,3 +691,7 @@ export function filterMaterials(
     location,
   );
 }
+
+
+
+

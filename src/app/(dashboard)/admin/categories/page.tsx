@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase/client';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 
 interface Category {
   id: string;
@@ -17,11 +17,7 @@ export default function AdminCategoriesPage() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const snapshot = await getDocs(collection(db, 'categories'));
       const catList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
@@ -31,7 +27,12 @@ export default function AdminCategoriesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void fetchCategories(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [fetchCategories]);
 
   const addCategory = async () => {
     if (!newCategoryName.trim()) return;
@@ -44,7 +45,7 @@ export default function AdminCategoriesPage() {
       });
       setNewCategoryName('');
       fetchCategories();
-    } catch (error) {
+    } catch {
       alert('Error adding category');
     }
   };
@@ -54,7 +55,7 @@ export default function AdminCategoriesPage() {
     try {
       await deleteDoc(doc(db, 'categories', id));
       fetchCategories();
-    } catch (error) {
+    } catch {
       alert('Error deleting category');
     }
   };
